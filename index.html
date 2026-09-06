@@ -882,12 +882,12 @@
       </div>
 
       <div class="field">
-        <label for="confirmPassword">Confirm password</label>
+        <label for="confirmPassword">Confirm password backwards</label>
         <div class="password-box">
           <input
             type="password"
             id="confirmPassword"
-            placeholder="Enter your password again"
+            placeholder="Enter your password backwards"
             autocomplete="new-password"
           >
           <button type="button" class="show-password" data-target="confirmPassword">
@@ -1198,6 +1198,20 @@
       return Array.from(value).length;
     }
 
+    function reversePassword(value) {
+      if (typeof Intl.Segmenter === "function") {
+        const segmenter = new Intl.Segmenter(undefined, {
+          granularity: "grapheme"
+        });
+        return Array.from(
+          segmenter.segment(value),
+          (part) => part.segment
+        ).reverse().join("");
+      }
+
+      return Array.from(value).reverse().join("");
+    }
+
     function nextPasswordRule(value) {
       const rules = [
         {
@@ -1243,6 +1257,8 @@
       confirmPasswordRules.textContent = "Confirm";
       confirmPasswordRules.classList.remove("confirmed");
       passwordError.classList.remove("accepted");
+      confirmPassword.value = "";
+      showError(confirmPassword, "confirmError", "");
       showError(password, "passwordError", "");
     }
 
@@ -1952,7 +1968,8 @@
 
       isPasswordConfirmed = true;
       showError(password, "passwordError", "");
-      passwordError.textContent = "Password accepted. Type it again below.";
+      passwordError.textContent =
+        "Password accepted. Enter it backwards below.";
       passwordError.classList.add("accepted");
       confirmPasswordRules.textContent = "Password confirmed";
       confirmPasswordRules.classList.add("confirmed");
@@ -2009,8 +2026,15 @@
         isValid = false;
       }
 
-      if (!confirmPassword.value || confirmPassword.value !== password.value) {
-        showError(confirmPassword, "confirmError", "Passwords do not match.");
+      if (
+        !confirmPassword.value ||
+        confirmPassword.value !== reversePassword(password.value)
+      ) {
+        showError(
+          confirmPassword,
+          "confirmError",
+          "Enter your original password backwards."
+        );
         isValid = false;
       }
 
