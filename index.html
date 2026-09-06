@@ -84,8 +84,8 @@
       border-color: #c62828;
     }
 
-    #fullName[readonly],
-    #email[readonly] {
+    #fullName[readonly][aria-busy="true"],
+    #email[readonly][aria-busy="true"] {
       color: #667085;
       background: #f7f7ff;
       cursor: wait;
@@ -366,6 +366,8 @@
           spellcheck="false"
           data-lpignore="true"
           data-1p-ignore="true"
+          aria-busy="false"
+          readonly
         >
         <div class="name-feedback">
           <small
@@ -433,6 +435,8 @@
           spellcheck="false"
           data-lpignore="true"
           data-1p-ignore="true"
+          aria-busy="false"
+          readonly
         >
         <div class="name-feedback">
           <small
@@ -516,7 +520,12 @@
     let nameProcessingTimer;
     let isEmailProcessing = false;
     let emailProcessingTimer;
+    let acceptedFullName = "";
+    let acceptedEmail = "";
     let selectedPhoneDigits = Array(10).fill(null);
+
+    fullName.value = "";
+    email.value = "";
     let activePhoneDigit = 0;
     let movingPhoneDigit = 0;
     let phoneCounterTimer;
@@ -606,7 +615,43 @@
       resetPhoneNumber(true);
     });
 
-    fullName.addEventListener("input", () => {
+    function isSingleManualCharacter(event, previousValue, currentValue) {
+      const inputType = event.inputType || "";
+      const insertedLength = Array.from(event.data || "").length;
+      const lengthChange =
+        Array.from(currentValue).length - Array.from(previousValue).length;
+
+      return (
+        (inputType === "insertText" || inputType === "insertCompositionText") &&
+        insertedLength === 1 &&
+        lengthChange === 1
+      );
+    }
+
+    function unlockFullName() {
+      if (!isNameProcessing) {
+        fullName.readOnly = false;
+      }
+    }
+
+    fullName.addEventListener("pointerdown", unlockFullName);
+    fullName.addEventListener("focus", unlockFullName);
+    fullName.addEventListener("blur", () => {
+      if (!isNameProcessing) {
+        fullName.readOnly = true;
+      }
+    });
+
+    fullName.addEventListener("input", (event) => {
+      const enteredValue = fullName.value;
+
+      if (!isSingleManualCharacter(event, acceptedFullName, enteredValue)) {
+        fullName.value = acceptedFullName;
+        return;
+      }
+
+      acceptedFullName = enteredValue;
+
       if (isNameProcessing) return;
 
       isNameProcessing = true;
@@ -633,10 +678,9 @@
     });
 
     function clearFullName() {
-      if (!fullName.value) return;
-
       clearTimeout(nameProcessingTimer);
       isNameProcessing = false;
+      acceptedFullName = "";
       fullName.value = "";
       fullName.readOnly = false;
       fullName.setAttribute("aria-busy", "false");
@@ -653,7 +697,14 @@
     });
 
     fullName.addEventListener("beforeinput", (event) => {
-      if (event.inputType === "insertFromPaste" || event.inputType === "insertFromDrop") {
+      const isBlockedInsert =
+        event.inputType === "insertFromPaste" ||
+        event.inputType === "insertFromDrop" ||
+        event.inputType === "insertReplacementText" ||
+        (event.inputType?.startsWith("insert") &&
+          Array.from(event.data || "").length > 1);
+
+      if (isBlockedInsert) {
         event.preventDefault();
         return;
       }
@@ -664,7 +715,30 @@
       }
     });
 
-    email.addEventListener("input", () => {
+    function unlockEmail() {
+      if (!isEmailProcessing) {
+        email.readOnly = false;
+      }
+    }
+
+    email.addEventListener("pointerdown", unlockEmail);
+    email.addEventListener("focus", unlockEmail);
+    email.addEventListener("blur", () => {
+      if (!isEmailProcessing) {
+        email.readOnly = true;
+      }
+    });
+
+    email.addEventListener("input", (event) => {
+      const enteredValue = email.value;
+
+      if (!isSingleManualCharacter(event, acceptedEmail, enteredValue)) {
+        email.value = acceptedEmail;
+        return;
+      }
+
+      acceptedEmail = enteredValue;
+
       if (isEmailProcessing) return;
 
       isEmailProcessing = true;
@@ -690,10 +764,9 @@
     });
 
     function clearEmail() {
-      if (!email.value) return;
-
       clearTimeout(emailProcessingTimer);
       isEmailProcessing = false;
+      acceptedEmail = "";
       email.value = "";
       email.readOnly = false;
       email.setAttribute("aria-busy", "false");
@@ -710,7 +783,14 @@
     });
 
     email.addEventListener("beforeinput", (event) => {
-      if (event.inputType === "insertFromPaste" || event.inputType === "insertFromDrop") {
+      const isBlockedInsert =
+        event.inputType === "insertFromPaste" ||
+        event.inputType === "insertFromDrop" ||
+        event.inputType === "insertReplacementText" ||
+        (event.inputType?.startsWith("insert") &&
+          Array.from(event.data || "").length > 1);
+
+      if (isBlockedInsert) {
         event.preventDefault();
         return;
       }
@@ -785,6 +865,10 @@
         "Account created successfully for " + fullName.value.trim() + "!";
       successMessage.classList.add("show");
       form.reset();
+      clearFullName();
+      clearEmail();
+      fullName.readOnly = true;
+      email.readOnly = true;
       resetPhoneNumber(false);
     });
 
