@@ -161,6 +161,17 @@
       opacity: 1;
     }
 
+    .email-recheck {
+      color: #7c2d12;
+      background: #ffedd5;
+      border-color: #fdba74;
+    }
+
+    .email-recheck:hover:not(:disabled) {
+      color: #7c2d12;
+      background: #fed7aa;
+    }
+
     .phone-picker {
       display: grid;
       gap: 10px;
@@ -483,6 +494,14 @@
         <button type="button" class="email-confirm" id="confirmEmail" disabled>
           Confirm email
         </button>
+        <button
+          type="button"
+          class="email-confirm email-recheck"
+          id="recheckEmail"
+          hidden
+        >
+          Check email again
+        </button>
       </div>
 
       <div class="field">
@@ -537,6 +556,7 @@
     const fullName = document.getElementById("fullName");
     const email = document.getElementById("email");
     const confirmEmail = document.getElementById("confirmEmail");
+    const recheckEmail = document.getElementById("recheckEmail");
     const password = document.getElementById("password");
     const confirmPassword = document.getElementById("confirmPassword");
     const terms = document.getElementById("terms");
@@ -555,6 +575,7 @@
     let isEmailProcessing = false;
     let emailProcessingTimer;
     let isEmailConfirmed = false;
+    let isEmailCheckedAgain = false;
     let acceptedFullName = "";
     let acceptedEmail = "";
     let selectedPhoneDigits = Array(10).fill(null);
@@ -774,9 +795,14 @@
 
       acceptedEmail = enteredValue;
       isEmailConfirmed = false;
+      isEmailCheckedAgain = false;
       confirmEmail.disabled = true;
       confirmEmail.textContent = "Confirm email";
       confirmEmail.classList.remove("confirmed");
+      recheckEmail.hidden = true;
+      recheckEmail.disabled = false;
+      recheckEmail.textContent = "Check email again";
+      recheckEmail.classList.remove("confirmed");
 
       if (isEmailProcessing) return;
 
@@ -808,11 +834,16 @@
       isEmailProcessing = false;
       acceptedEmail = "";
       isEmailConfirmed = false;
+      isEmailCheckedAgain = false;
       email.value = "";
       email.readOnly = false;
       confirmEmail.disabled = true;
       confirmEmail.textContent = "Confirm email";
       confirmEmail.classList.remove("confirmed");
+      recheckEmail.hidden = true;
+      recheckEmail.disabled = false;
+      recheckEmail.textContent = "Check email again";
+      recheckEmail.classList.remove("confirmed");
       email.setAttribute("aria-busy", "false");
       email.setAttribute("aria-invalid", "false");
       document.getElementById("emailError").textContent = "";
@@ -854,6 +885,7 @@
       clearTimeout(emailProcessingTimer);
       isEmailProcessing = false;
       isEmailConfirmed = true;
+      isEmailCheckedAgain = false;
       email.readOnly = true;
       email.setAttribute("aria-busy", "false");
       email.setAttribute("aria-invalid", "false");
@@ -862,6 +894,24 @@
       confirmEmail.disabled = true;
       confirmEmail.textContent = "Email confirmed";
       confirmEmail.classList.add("confirmed");
+      recheckEmail.hidden = false;
+      recheckEmail.disabled = false;
+      recheckEmail.textContent = "Check email again";
+      recheckEmail.focus();
+    });
+
+    recheckEmail.addEventListener("click", () => {
+      if (!isEmailConfirmed || !validEmail(email.value.trim())) {
+        showError(email, "emailError", "Email is not valid. Please enter it again.");
+        return;
+      }
+
+      isEmailCheckedAgain = true;
+      email.setAttribute("aria-invalid", "false");
+      document.getElementById("emailError").textContent = "";
+      recheckEmail.disabled = true;
+      recheckEmail.textContent = "Email checked";
+      recheckEmail.classList.add("confirmed");
       password.focus();
     });
 
@@ -904,6 +954,9 @@
         isValid = false;
       } else if (!isEmailConfirmed) {
         showError(email, "emailError", "Please confirm your email address.");
+        isValid = false;
+      } else if (!isEmailCheckedAgain) {
+        showError(email, "emailError", "Please check your email again.");
         isValid = false;
       }
 
