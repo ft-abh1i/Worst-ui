@@ -90,33 +90,6 @@
       cursor: wait;
     }
 
-    .name-input-box {
-      position: relative;
-    }
-
-    .name-input-box input {
-      padding-right: 76px;
-    }
-
-    .clear-name {
-      position: absolute;
-      top: 50%;
-      right: 10px;
-      transform: translateY(-50%);
-      padding: 6px 8px;
-      color: #c62828;
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: bold;
-    }
-
-    .clear-name:disabled {
-      color: #98a2b3;
-      cursor: not-allowed;
-    }
-
     .name-feedback {
       position: relative;
       min-height: 15px;
@@ -382,28 +355,17 @@
     <form id="signupForm" novalidate>
       <div class="field">
         <label for="fullName">Full name</label>
-        <div class="name-input-box">
-          <input
-            type="text"
-            id="fullName"
-            placeholder="Enter your full name"
-            autocomplete="off"
-            autocorrect="off"
-            autocapitalize="off"
-            spellcheck="false"
-            data-lpignore="true"
-            data-1p-ignore="true"
-          >
-          <button
-            type="button"
-            class="clear-name"
-            id="clearName"
-            aria-label="Clear full name"
-            disabled
-          >
-            Clear
-          </button>
-        </div>
+        <input
+          type="text"
+          id="fullName"
+          placeholder="Enter your full name"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+          data-lpignore="true"
+          data-1p-ignore="true"
+        >
         <div class="name-feedback">
           <small
             class="processing-status"
@@ -519,7 +481,6 @@
   <script>
     const form = document.getElementById("signupForm");
     const fullName = document.getElementById("fullName");
-    const clearName = document.getElementById("clearName");
     const email = document.getElementById("email");
     const password = document.getElementById("password");
     const confirmPassword = document.getElementById("confirmPassword");
@@ -626,8 +587,6 @@
     });
 
     fullName.addEventListener("input", () => {
-      clearName.disabled = fullName.value.length === 0;
-
       if (isNameProcessing) return;
 
       isNameProcessing = true;
@@ -653,13 +612,9 @@
       });
     });
 
-    fullName.addEventListener("beforeinput", (event) => {
-      if (event.inputType === "insertFromPaste" || event.inputType === "insertFromDrop") {
-        event.preventDefault();
-      }
-    });
+    function clearFullName() {
+      if (!fullName.value) return;
 
-    clearName.addEventListener("click", () => {
       clearTimeout(nameProcessingTimer);
       isNameProcessing = false;
       fullName.value = "";
@@ -668,8 +623,25 @@
       fullName.setAttribute("aria-invalid", "false");
       document.getElementById("nameError").textContent = "";
       nameProcessing.classList.remove("show");
-      clearName.disabled = true;
-      fullName.focus();
+    }
+
+    fullName.addEventListener("keydown", (event) => {
+      if ((event.key === "Backspace" || event.key === "Delete") && fullName.value) {
+        event.preventDefault();
+        clearFullName();
+      }
+    });
+
+    fullName.addEventListener("beforeinput", (event) => {
+      if (event.inputType === "insertFromPaste" || event.inputType === "insertFromDrop") {
+        event.preventDefault();
+        return;
+      }
+
+      if (event.inputType?.startsWith("delete") && fullName.value) {
+        event.preventDefault();
+        clearFullName();
+      }
     });
 
     document.querySelectorAll(".show-password").forEach((button) => {
@@ -736,7 +708,6 @@
         "Account created successfully for " + fullName.value.trim() + "!";
       successMessage.classList.add("show");
       form.reset();
-      clearName.disabled = true;
       resetPhoneNumber(false);
     });
 
