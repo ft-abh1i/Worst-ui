@@ -632,28 +632,6 @@
       font-size: 12px;
     }
 
-    .terms {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      color: #667085;
-      font-size: 14px;
-      font-weight: normal;
-      line-height: 1.4;
-      cursor: pointer;
-    }
-
-    .terms input {
-      width: 16px;
-      height: 16px;
-      margin-top: 2px;
-      accent-color: #4f46e5;
-    }
-
-    .terms-error {
-      margin-top: -12px;
-    }
-
     .submit-btn {
       height: 50px;
       color: white;
@@ -686,19 +664,6 @@
 
     .success-message.show {
       display: block;
-    }
-
-    .login-text {
-      margin-top: 23px;
-      color: #667085;
-      text-align: center;
-      font-size: 14px;
-    }
-
-    .login-text a {
-      color: #4f46e5;
-      font-weight: bold;
-      text-decoration: none;
     }
 
     @media (max-width: 500px) {
@@ -940,19 +905,10 @@
         ></small>
       </div>
 
-      <label class="terms" for="terms">
-        <input type="checkbox" id="terms">
-        <span>I agree to the Terms and Privacy Policy.</span>
-      </label>
-      <small class="error terms-error" id="termsError"></small>
-
       <button type="submit" class="submit-btn">Create account</button>
       <div class="success-message" id="successMessage" role="status"></div>
     </form>
 
-    <p class="login-text">
-      Already have an account? <a href="#">Log in</a>
-    </p>
   </main>
 
   <div
@@ -1191,7 +1147,6 @@
     const confirmBackwardPassword =
       document.getElementById("confirmBackwardPassword");
     const confirmError = document.getElementById("confirmError");
-    const terms = document.getElementById("terms");
     const successMessage = document.getElementById("successMessage");
     const emailProcessing = document.getElementById("emailProcessing");
     const phonePicker = document.getElementById("phonePicker");
@@ -2126,7 +2081,6 @@
       confirmBackwardPassword.textContent = "Password verified";
       confirmBackwardPassword.classList.add("confirmed");
       confirmBackwardPassword.disabled = true;
-      terms.focus();
     });
 
     form.addEventListener("submit", (event) => {
@@ -2141,7 +2095,6 @@
       phoneError.textContent = "";
       dobPicker.setAttribute("aria-invalid", "false");
       dobError.textContent = "";
-      document.getElementById("termsError").textContent = "";
       successMessage.classList.remove("show");
 
       if (countNameLetters(fullName.value) < 6) {
@@ -2189,12 +2142,6 @@
           "confirmError",
           "Press Confirm to verify your backwards password."
         );
-        isValid = false;
-      }
-
-      if (!terms.checked) {
-        document.getElementById("termsError").textContent =
-          "Please accept the terms to continue.";
         isValid = false;
       }
 
