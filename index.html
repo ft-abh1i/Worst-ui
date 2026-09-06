@@ -592,24 +592,6 @@
       position: relative;
     }
 
-    .password-box input {
-      padding-right: 65px;
-    }
-
-    .show-password {
-      position: absolute;
-      top: 50%;
-      right: 12px;
-      transform: translateY(-50%);
-      padding: 6px;
-      color: #4f46e5;
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: bold;
-    }
-
     .error {
       min-height: 15px;
       color: #c62828;
@@ -862,9 +844,6 @@
             autocomplete="new-password"
             aria-describedby="passwordError"
           >
-          <button type="button" class="show-password" data-target="password">
-            Show
-          </button>
         </div>
         <button
           type="button"
@@ -890,9 +869,6 @@
             placeholder="Enter your password backwards"
             autocomplete="new-password"
           >
-          <button type="button" class="show-password" data-target="confirmPassword">
-            Show
-          </button>
         </div>
         <small class="error" id="confirmError"></small>
       </div>
@@ -1942,16 +1918,6 @@
       confirmEmail.textContent = "Email confirmed";
       confirmEmail.classList.add("confirmed");
       password.focus();
-    });
-
-    document.querySelectorAll(".show-password").forEach((button) => {
-      button.addEventListener("click", () => {
-        const input = document.getElementById(button.dataset.target);
-        const hidden = input.type === "password";
-
-        input.type = hidden ? "text" : "password";
-        button.textContent = hidden ? "Hide" : "Show";
-      });
     });
 
     confirmPasswordRules.addEventListener("click", () => {
