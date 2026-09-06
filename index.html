@@ -161,6 +161,38 @@
       opacity: 1;
     }
 
+    .password-confirm {
+      min-height: 42px;
+      padding: 9px 14px;
+      color: white;
+      background: #4f46e5;
+      border: 1px solid #4f46e5;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      transition: 0.15s;
+    }
+
+    .password-confirm:hover:not(:disabled) {
+      background: #4338ca;
+      transform: translateY(-1px);
+    }
+
+    .password-confirm:disabled {
+      cursor: not-allowed;
+    }
+
+    .password-confirm.confirmed {
+      color: #087f5b;
+      background: #eafaf4;
+      border-color: #b7ead8;
+    }
+
+    #passwordError.accepted {
+      color: #087f5b;
+    }
+
     #fullName {
       cursor: pointer;
     }
@@ -834,6 +866,14 @@
             Show
           </button>
         </div>
+        <button
+          type="button"
+          class="password-confirm"
+          id="confirmPasswordRules"
+          aria-describedby="passwordError"
+        >
+          Confirm
+        </button>
         <small
           class="error"
           id="passwordError"
@@ -1098,6 +1138,9 @@
     const editOriginalFromBackward = document.getElementById("editOriginalFromBackward");
     const verifyBackwardEmail = document.getElementById("verifyBackwardEmail");
     const password = document.getElementById("password");
+    const confirmPasswordRules =
+      document.getElementById("confirmPasswordRules");
+    const passwordError = document.getElementById("passwordError");
     const confirmPassword = document.getElementById("confirmPassword");
     const terms = document.getElementById("terms");
     const successMessage = document.getElementById("successMessage");
@@ -1116,6 +1159,7 @@
     let isEmailProcessing = false;
     let emailProcessingTimer;
     let isEmailConfirmed = false;
+    let isPasswordConfirmed = false;
     let isEmailReviewOpen = false;
     let acceptedEmail = "";
     let acceptedRetypedEmail = "";
@@ -1195,6 +1239,15 @@
       ];
 
       return rules.find((rule) => !rule.passes)?.message || "";
+    }
+
+    function resetPasswordConfirmation() {
+      isPasswordConfirmed = false;
+      confirmPasswordRules.disabled = false;
+      confirmPasswordRules.textContent = "Confirm";
+      confirmPasswordRules.classList.remove("confirmed");
+      passwordError.classList.remove("accepted");
+      showError(password, "passwordError", "");
     }
 
     function countNameLetters(value) {
@@ -1889,6 +1942,28 @@
       });
     });
 
+    confirmPasswordRules.addEventListener("click", () => {
+      const passwordRule = nextPasswordRule(password.value);
+
+      passwordError.classList.remove("accepted");
+
+      if (passwordRule) {
+        isPasswordConfirmed = false;
+        showError(password, "passwordError", passwordRule);
+        password.focus();
+        return;
+      }
+
+      isPasswordConfirmed = true;
+      showError(password, "passwordError", "");
+      passwordError.textContent = "Password accepted. Type it again below.";
+      passwordError.classList.add("accepted");
+      confirmPasswordRules.textContent = "Password confirmed";
+      confirmPasswordRules.classList.add("confirmed");
+      confirmPasswordRules.disabled = true;
+      confirmPassword.focus();
+    });
+
     form.addEventListener("submit", (event) => {
       event.preventDefault();
       let isValid = true;
@@ -1929,10 +2004,12 @@
         isValid = false;
       }
 
-      const passwordRule = nextPasswordRule(password.value);
-
-      if (passwordRule) {
-        showError(password, "passwordError", passwordRule);
+      if (!isPasswordConfirmed) {
+        showError(
+          password,
+          "passwordError",
+          "Press Confirm to check your password."
+        );
         isValid = false;
       }
 
@@ -1956,6 +2033,7 @@
         "Account created successfully for " + fullName.value.trim() + "!";
       successMessage.classList.add("show");
       form.reset();
+      resetPasswordConfirmation();
       clearFullName();
       clearEmail();
       fullName.readOnly = true;
@@ -1971,11 +2049,7 @@
     });
 
     password.addEventListener("input", () => {
-      const message = password.value
-        ? nextPasswordRule(password.value)
-        : "";
-
-      showError(password, "passwordError", message);
+      resetPasswordConfirmation();
     });
 
     resetDob();
