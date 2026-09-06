@@ -601,12 +601,18 @@
       gap: 5px;
     }
 
-    .dob-year-confirm,
-    .dob-year-status {
-      grid-column: 1 / -1;
+    .dob-year-reset {
+      color: #344054;
+      background: white;
+      border-color: #cbd5e1;
+    }
+
+    .dob-year-reset:hover {
+      background: #f1f5f9;
     }
 
     .dob-year-status {
+      grid-column: 1 / -1;
       min-height: 26px;
       display: grid;
       place-items: center;
@@ -860,6 +866,13 @@
                   id="confirmDobYear"
                 >
                   Correct
+                </button>
+                <button
+                  type="button"
+                  class="dob-step-button dob-year-reset"
+                  id="resetDobYear"
+                >
+                  Reset
                 </button>
                 <span
                   class="dob-year-status"
@@ -1149,6 +1162,7 @@
     const dobYearEarlier = document.getElementById("dobYearEarlier");
     const dobYearLater = document.getElementById("dobYearLater");
     const confirmDobYear = document.getElementById("confirmDobYear");
+    const resetDobYear = document.getElementById("resetDobYear");
     const dobYearStatus = document.getElementById("dobYearStatus");
     const dobError = document.getElementById("dobError");
     const emailConfirmModal = document.getElementById("emailConfirmModal");
@@ -1344,8 +1358,9 @@
         isDobYearConfirmed || dobYear <= dobYearLower;
       dobYearLater.disabled =
         isDobYearConfirmed || dobYear >= dobYearUpper;
+      confirmDobYear.disabled = isDobYearConfirmed;
       confirmDobYear.textContent =
-        isDobYearConfirmed ? "Start over" : "Correct";
+        isDobYearConfirmed ? "Confirmed" : "Correct";
       confirmDobYear.classList.toggle(
         "confirmed",
         isDobYearConfirmed
@@ -1422,15 +1437,14 @@
     });
 
     confirmDobYear.addEventListener("click", () => {
-      if (isDobYearConfirmed) {
-        resetDobYearGuess();
-        return;
-      }
-
       isDobYearConfirmed = true;
       dobPicker.setAttribute("aria-invalid", "false");
       dobError.textContent = "";
       updateDobYearGuessControls();
+    });
+
+    resetDobYear.addEventListener("click", () => {
+      resetDobYearGuess();
     });
 
     function startPhoneCounter() {
