@@ -788,6 +788,527 @@
         font-size: 16px;
       }
     }
+    /* Intentionally chaotic Worst UI competition theme */
+    @keyframes badCardPulse {
+      0%, 100% {
+        border-color: #f50057;
+        box-shadow:
+          16px 18px 0 #00e5ff,
+          -14px -12px 0 #ffea00,
+          0 30px 70px rgba(84, 0, 130, 0.42);
+      }
+      50% {
+        border-color: #00c853;
+        box-shadow:
+          -16px 14px 0 #ff6d00,
+          14px -12px 0 #d500f9,
+          0 30px 70px rgba(0, 74, 173, 0.42);
+      }
+    }
+
+    @keyframes requiredBlink {
+      0%, 48% {
+        opacity: 1;
+        transform: scale(1);
+      }
+      49%, 100% {
+        opacity: 0.22;
+        transform: scale(0.94);
+      }
+    }
+
+    @keyframes headingWobble {
+      0%, 100% {
+        transform: rotate(-1.4deg) skewX(-4deg);
+      }
+      50% {
+        transform: rotate(1.2deg) skewX(3deg);
+      }
+    }
+
+    body {
+      cursor: crosshair;
+      background-color: #00e5ff;
+      background-image:
+        repeating-linear-gradient(
+          45deg,
+          rgba(255, 0, 140, 0.48) 0 18px,
+          rgba(255, 234, 0, 0.55) 18px 36px,
+          rgba(0, 230, 118, 0.48) 36px 54px
+        ),
+        repeating-linear-gradient(
+          -45deg,
+          transparent 0 24px,
+          rgba(98, 0, 234, 0.28) 24px 48px
+        );
+      background-size: 76px 76px, 96px 96px;
+    }
+
+    .signup-card {
+      position: relative;
+      background:
+        linear-gradient(
+          132deg,
+          #fff500 0 21%,
+          #ff80c8 21% 46%,
+          #69f0ae 46% 72%,
+          #80d8ff 72% 100%
+        );
+      border: 7px dashed #f50057;
+      border-radius: 5px 54px 12px 38px;
+      animation: badCardPulse 4.5s linear infinite;
+    }
+
+    .signup-card::before {
+      content: "100% USER FRIENDLY";
+      position: absolute;
+      top: -19px;
+      left: 8%;
+      padding: 5px 12px;
+      color: #ffff00;
+      background: #5b00a8;
+      border: 3px solid #ff6d00;
+      font-family: "Courier New", monospace;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      transform: rotate(-4deg);
+    }
+
+    h1 {
+      width: fit-content;
+      margin-right: auto;
+      margin-left: auto;
+      padding: 7px 14px;
+      color: #39ff14;
+      background: #6200ea;
+      border: 5px double #ff6d00;
+      border-radius: 18px 0 22px 3px;
+      font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+      font-size: clamp(29px, 3.1vw, 46px);
+      letter-spacing: 4px;
+      text-align: center;
+      text-shadow:
+        3px 3px 0 #ff1744,
+        -3px -3px 0 #00b0ff;
+      text-transform: uppercase;
+      animation: headingWobble 5s ease-in-out infinite;
+    }
+
+    .subtitle {
+      width: fit-content;
+      margin-right: auto;
+      margin-left: auto;
+      padding: 5px 10px;
+      color: #b00020;
+      background: #00ffff;
+      border: 3px dotted #3f00ff;
+      font-family: "Courier New", monospace;
+      font-weight: 900;
+      text-align: center;
+      text-decoration: underline wavy #ff00aa;
+      transform: rotate(0.8deg);
+    }
+
+    #signupForm > .field {
+      padding: 12px;
+      border-width: 4px;
+      border-style: ridge;
+      box-shadow:
+        7px 7px 0 rgba(0, 0, 0, 0.2),
+        inset 0 0 0 3px rgba(255, 255, 255, 0.38);
+    }
+
+    #signupForm > .field > label::after {
+      content: " REQUIRED!!!";
+      display: inline-block;
+      margin-left: 5px;
+      color: #ff003c;
+      font-family: "Courier New", monospace;
+      font-size: 10px;
+      font-weight: 900;
+      animation: requiredBlink 1.8s step-end infinite;
+    }
+
+    .name-field {
+      color: #3d0066;
+      background: #c6ff00;
+      border-color: #ff00d4;
+      border-radius: 0 31px 4px 19px;
+      font-family: "Comic Sans MS", "Comic Sans", cursive;
+    }
+
+    .phone-field {
+      color: #0037ff;
+      background: #ff9800;
+      border-color: #004cff;
+      border-radius: 28px 2px 34px 6px;
+      font-family: Georgia, "Times New Roman", serif;
+    }
+
+    .email-field {
+      color: #7a0000;
+      background: #00e5ff;
+      border-color: #ff1744;
+      border-radius: 4px 38px 0 27px;
+      font-family: "Courier New", monospace;
+    }
+
+    .dob-field {
+      color: #004d1a;
+      background: #ff80ab;
+      border-color: #006400;
+      border-radius: 37px 3px 25px 0;
+      font-family: "Times New Roman", Times, serif;
+    }
+
+    .password-field {
+      color: #2d0078;
+      background: #fff176;
+      border-color: #8e24aa;
+      border-radius: 3px 26px 2px 41px;
+      font-family: Verdana, Geneva, sans-serif;
+    }
+
+    .confirm-password-field {
+      color: #5b2100;
+      background: #b388ff;
+      border-color: #ff6d00;
+      border-radius: 32px 0 9px 27px;
+      font-family: "Lucida Console", Monaco, monospace;
+    }
+
+    .name-field > label {
+      color: #f00000;
+      font-size: 20px;
+      text-align: right;
+      transform: rotate(-2deg);
+    }
+
+    .phone-field > label {
+      color: #002bff;
+      font-size: 12px;
+      letter-spacing: 3px;
+      text-transform: lowercase;
+    }
+
+    .email-field > label {
+      color: #8b0000;
+      font-size: 18px;
+      text-align: center;
+      transform: skewX(-12deg);
+    }
+
+    .dob-field > label {
+      color: #005c20;
+      font-size: 21px;
+      text-decoration: overline;
+    }
+
+    .password-field > label {
+      color: #7100a8;
+      font-size: 13px;
+      text-align: right;
+      text-transform: uppercase;
+    }
+
+    .confirm-password-field > label {
+      color: #7c2500;
+      font-size: 17px;
+      letter-spacing: -1px;
+      transform: rotate(1.5deg);
+    }
+
+    .name-field input {
+      color: #8500a8;
+      background: #fff200;
+      border: 5px groove #003cff;
+      border-radius: 0;
+      font-family: "Comic Sans MS", cursive;
+      transform: rotate(0.6deg);
+    }
+
+    .email-field input {
+      color: #00ff55;
+      background: #171717;
+      border: 4px double #ff1744;
+      border-radius: 26px;
+      font-family: "Courier New", monospace;
+    }
+
+    .password-field input {
+      color: #ffffff;
+      background: #4a148c;
+      border: 5px inset #ffea00;
+      border-radius: 2px 28px 2px 28px;
+      font-family: Verdana, sans-serif;
+    }
+
+    .confirm-password-field input {
+      color: #9b0000;
+      background: #ffeb3b;
+      border: 5px double #00838f;
+      border-radius: 31px 0 31px 0;
+      font-family: "Lucida Console", monospace;
+    }
+
+    input::placeholder {
+      color: #ff5c00;
+      font-family: Georgia, serif;
+      font-size: 12px;
+      font-style: italic;
+      opacity: 1;
+    }
+
+    input:focus {
+      border-color: #ff00c8;
+      box-shadow:
+        0 0 0 5px #00ff73,
+        0 0 0 9px #ffea00;
+    }
+
+    .phone-picker {
+      background: #ffec80;
+      border: 5px dotted #e00000;
+      border-radius: 29px 0 22px 3px;
+    }
+
+    .phone-digit:nth-child(odd) {
+      color: #d50000;
+      background: #ffeb3b;
+      border-color: #6200ea;
+      transform: translateY(3px) rotate(-2deg);
+    }
+
+    .phone-digit:nth-child(even) {
+      color: #004dff;
+      background: #69f0ae;
+      border-color: #ff00aa;
+      transform: translateY(-3px) rotate(2deg);
+    }
+
+    .phone-digit.active {
+      color: white;
+      background: #ff00a8;
+      border-color: #00ff66;
+      box-shadow: 0 0 0 4px #fff500;
+      transform: rotate(7deg) scale(1.08);
+    }
+
+    .phone-button.restart {
+      color: #ffff00;
+      background: #e00000;
+      border: 5px outset #ff8a80;
+      border-radius: 0;
+      font-family: Impact, sans-serif;
+      font-size: 17px;
+      letter-spacing: 1px;
+    }
+
+    .phone-button.set {
+      color: #ffff00;
+      background: #5d4037;
+      border: 5px inset #00e5ff;
+      border-radius: 29px 2px;
+      font-family: "Courier New", monospace;
+    }
+
+    .dob-picker {
+      background: #b2ff59;
+      border: 6px double #ff1744;
+      border-radius: 0 34px 5px 21px;
+    }
+
+    .dob-value {
+      color: #5b00a8;
+      background: #00ff66;
+      border-color: #ff0000;
+      border-radius: 50% 7px 45% 3px;
+      font-family: "Courier New", monospace;
+      transform: rotate(-1deg);
+    }
+
+    .dob-step-button {
+      color: #3a006b;
+      background: #ffea00;
+      border: 4px outset #ff00a8;
+      border-radius: 17px 0;
+      font-family: "Comic Sans MS", cursive;
+    }
+
+    .dob-year-reset {
+      color: #ffff00;
+      background: #d50000;
+      border-color: #ff8a80;
+      font-size: 17px;
+      transform: scale(1.08) rotate(1deg);
+    }
+
+    .email-confirm,
+    .password-confirm {
+      width: 39%;
+      min-height: 31px;
+      justify-self: end;
+      padding: 5px 8px;
+      color: #5f6368;
+      background: #d8d8d8;
+      border: 4px outset #ffffff;
+      border-radius: 0;
+      cursor: help;
+      font-family: "Times New Roman", serif;
+      font-size: 10px;
+      font-weight: normal;
+      text-transform: lowercase;
+      box-shadow: none;
+    }
+
+    .email-confirm.confirmed,
+    .password-confirm.confirmed {
+      color: #4c003f;
+      background: #ff80d5;
+      border-color: #6a00ff;
+    }
+
+    .error:not(:empty),
+    .email-retype-error:not(:empty) {
+      padding: 3px 5px;
+      color: #ff5a00;
+      background: #c6ff00;
+      border: 2px dotted #6a00ff;
+      font-family: "Courier New", monospace;
+      font-weight: 900;
+      text-transform: uppercase;
+      transform: rotate(-0.4deg);
+    }
+
+    .submit-btn {
+      color: #8b8f97;
+      background: #d1d5db;
+      border: 3px solid #9ca3af;
+      border-radius: 2px;
+      cursor: not-allowed;
+      font-family: "Courier New", monospace;
+      font-size: 13px;
+      font-weight: normal;
+      letter-spacing: -0.8px;
+      box-shadow: none;
+      opacity: 0.88;
+      transform: skewX(-8deg);
+    }
+
+    .submit-btn:hover {
+      color: #777b84;
+      background: #c7cbd1;
+      transform: skewX(8deg) translateY(1px);
+    }
+
+    .floating-keyboard-card {
+      background:
+        repeating-linear-gradient(
+          90deg,
+          #ffea00 0 24px,
+          #ff80c8 24px 48px,
+          #69f0ae 48px 72px
+        );
+      border: 8px ridge #6200ea;
+      border-radius: 3px 46px 8px 31px;
+    }
+
+    .floating-keyboard-card h2 {
+      color: #ffff00;
+      background: #d50000;
+      border: 4px dotted #00e5ff;
+      font-family: Impact, sans-serif;
+      letter-spacing: 3px;
+      transform: rotate(-1deg);
+    }
+
+    .floating-letter:nth-child(3n + 1) {
+      color: #ff1744;
+      background: #ffea00;
+      border-color: #6200ea;
+      transform: rotate(-5deg);
+    }
+
+    .floating-letter:nth-child(3n + 2) {
+      color: #003cff;
+      background: #69f0ae;
+      border-color: #ff00a8;
+      transform: rotate(4deg);
+    }
+
+    .floating-letter:nth-child(3n) {
+      color: #ffffff;
+      background: #ff6d00;
+      border-color: #00e5ff;
+      transform: rotate(-1deg);
+    }
+
+    .email-modal-card {
+      background:
+        repeating-linear-gradient(
+          -35deg,
+          #ffeb3b 0 20px,
+          #00e5ff 20px 40px,
+          #ff80ab 40px 60px
+        );
+      border: 8px double #6200ea;
+      border-radius: 0 44px 6px 29px;
+      font-family: "Comic Sans MS", cursive;
+    }
+
+    .email-modal-card h2,
+    .email-modal-card p {
+      padding: 5px;
+      color: #5b0038;
+      background: rgba(255, 255, 255, 0.82);
+      border: 2px dashed #ff1744;
+    }
+
+    .email-modal-button.edit {
+      color: #ffff00;
+      background: #d50000;
+      border: 5px outset #ff8a80;
+      border-radius: 0;
+      font-family: Impact, sans-serif;
+      font-size: 17px;
+    }
+
+    .email-modal-button.yes {
+      color: #5f6368;
+      background: #d8d8d8;
+      border: 3px solid #9ca3af;
+      border-radius: 22px;
+      font-family: "Times New Roman", serif;
+      font-size: 10px;
+    }
+
+    @media (min-width: 900px) {
+      #signupForm {
+        grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
+      }
+
+      .name-field,
+      .phone-field,
+      .password-field {
+        transform: translateX(-9px) rotate(-0.45deg);
+      }
+
+      .email-field,
+      .dob-field,
+      .confirm-password-field {
+        transform: translate(11px, 10px) rotate(0.55deg);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .signup-card,
+      h1,
+      #signupForm > .field > label::after {
+        animation: none;
+      }
+    }
+
   </style>
 </head>
 
