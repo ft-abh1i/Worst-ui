@@ -84,7 +84,8 @@
       border-color: #c62828;
     }
 
-    #fullName[readonly] {
+    #fullName[readonly],
+    #email[readonly] {
       color: #667085;
       background: #f7f7ff;
       cursor: wait;
@@ -426,9 +427,25 @@
           type="email"
           id="email"
           placeholder="you@example.com"
-          autocomplete="email"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+          data-lpignore="true"
+          data-1p-ignore="true"
         >
-        <small class="error" id="emailError"></small>
+        <div class="name-feedback">
+          <small
+            class="processing-status"
+            id="emailProcessing"
+            role="status"
+            aria-live="polite"
+          >
+            <span class="spinner" aria-hidden="true"></span>
+            Processing...
+          </small>
+          <small class="error" id="emailError"></small>
+        </div>
       </div>
 
       <div class="field">
@@ -487,6 +504,7 @@
     const terms = document.getElementById("terms");
     const successMessage = document.getElementById("successMessage");
     const nameProcessing = document.getElementById("nameProcessing");
+    const emailProcessing = document.getElementById("emailProcessing");
     const phonePicker = document.getElementById("phonePicker");
     const phoneNumber = document.getElementById("phoneNumber");
     const phoneStatus = document.getElementById("phoneStatus");
@@ -496,6 +514,8 @@
     const phoneDigitBoxes = Array.from(document.querySelectorAll(".phone-digit"));
     let isNameProcessing = false;
     let nameProcessingTimer;
+    let isEmailProcessing = false;
+    let emailProcessingTimer;
     let selectedPhoneDigits = Array(10).fill(null);
     let activePhoneDigit = 0;
     let movingPhoneDigit = 0;
@@ -641,6 +661,64 @@
       if (event.inputType?.startsWith("delete") && fullName.value) {
         event.preventDefault();
         clearFullName();
+      }
+    });
+
+    email.addEventListener("input", () => {
+      if (isEmailProcessing) return;
+
+      isEmailProcessing = true;
+      email.readOnly = true;
+      email.setAttribute("aria-busy", "true");
+      document.getElementById("emailError").textContent = "";
+      emailProcessing.classList.add("show");
+
+      clearTimeout(emailProcessingTimer);
+      emailProcessingTimer = setTimeout(() => {
+        isEmailProcessing = false;
+        email.readOnly = false;
+        email.setAttribute("aria-busy", "false");
+        emailProcessing.classList.remove("show");
+        email.focus();
+        email.setSelectionRange(email.value.length, email.value.length);
+      }, 1000);
+    });
+
+    ["copy", "cut", "paste", "drop"].forEach((eventName) => {
+      email.addEventListener(eventName, (event) => {
+        event.preventDefault();
+      });
+    });
+
+    function clearEmail() {
+      if (!email.value) return;
+
+      clearTimeout(emailProcessingTimer);
+      isEmailProcessing = false;
+      email.value = "";
+      email.readOnly = false;
+      email.setAttribute("aria-busy", "false");
+      email.setAttribute("aria-invalid", "false");
+      document.getElementById("emailError").textContent = "";
+      emailProcessing.classList.remove("show");
+    }
+
+    email.addEventListener("keydown", (event) => {
+      if ((event.key === "Backspace" || event.key === "Delete") && email.value) {
+        event.preventDefault();
+        clearEmail();
+      }
+    });
+
+    email.addEventListener("beforeinput", (event) => {
+      if (event.inputType === "insertFromPaste" || event.inputType === "insertFromDrop") {
+        event.preventDefault();
+        return;
+      }
+
+      if (event.inputType?.startsWith("delete") && email.value) {
+        event.preventDefault();
+        clearEmail();
       }
     });
 
