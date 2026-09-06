@@ -161,15 +161,79 @@
       opacity: 1;
     }
 
-    .email-recheck {
-      color: #7c2d12;
-      background: #ffedd5;
-      border-color: #fdba74;
+    .email-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: none;
+      place-items: center;
+      padding: 20px;
+      background: rgba(15, 23, 42, 0.58);
+      backdrop-filter: blur(4px);
     }
 
-    .email-recheck:hover:not(:disabled) {
-      color: #7c2d12;
-      background: #fed7aa;
+    .email-modal.show {
+      display: grid;
+    }
+
+    .email-modal-card {
+      width: min(100%, 390px);
+      padding: 26px;
+      background: white;
+      border-radius: 18px;
+      box-shadow: 0 24px 70px rgba(15, 23, 42, 0.28);
+      text-align: center;
+    }
+
+    .email-modal-card h2 {
+      margin-bottom: 10px;
+      font-size: 21px;
+      line-height: 1.3;
+    }
+
+    .email-modal-card p {
+      color: #667085;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .email-to-confirm {
+      display: block;
+      margin-top: 12px;
+      padding: 11px;
+      overflow-wrap: anywhere;
+      color: #172033;
+      background: #f3f4ff;
+      border: 1px solid #d9dfeb;
+      border-radius: 10px;
+      font-weight: bold;
+    }
+
+    .email-modal-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .email-modal-button {
+      min-height: 44px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .email-modal-button.edit {
+      color: #475467;
+      background: white;
+      border: 1px solid #d9dfeb;
+    }
+
+    .email-modal-button.yes {
+      color: white;
+      background: #4f46e5;
+      border: 1px solid #4f46e5;
     }
 
     .phone-picker {
@@ -494,14 +558,6 @@
         <button type="button" class="email-confirm" id="confirmEmail" disabled>
           Confirm email
         </button>
-        <button
-          type="button"
-          class="email-confirm email-recheck"
-          id="recheckEmail"
-          hidden
-        >
-          Check email again
-        </button>
       </div>
 
       <div class="field">
@@ -551,12 +607,40 @@
     </p>
   </main>
 
+  <div
+    class="email-modal"
+    id="emailConfirmModal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="emailConfirmTitle"
+    aria-hidden="true"
+  >
+    <div class="email-modal-card">
+      <h2 id="emailConfirmTitle">Check if this email is correct</h2>
+      <p>
+        Please check the email once more.
+        <span class="email-to-confirm" id="emailToConfirm"></span>
+      </p>
+      <div class="email-modal-actions">
+        <button type="button" class="email-modal-button edit" id="editEmail">
+          Edit
+        </button>
+        <button type="button" class="email-modal-button yes" id="acceptEmail">
+          Yes
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const form = document.getElementById("signupForm");
     const fullName = document.getElementById("fullName");
     const email = document.getElementById("email");
     const confirmEmail = document.getElementById("confirmEmail");
-    const recheckEmail = document.getElementById("recheckEmail");
+    const emailConfirmModal = document.getElementById("emailConfirmModal");
+    const emailToConfirm = document.getElementById("emailToConfirm");
+    const editEmail = document.getElementById("editEmail");
+    const acceptEmail = document.getElementById("acceptEmail");
     const password = document.getElementById("password");
     const confirmPassword = document.getElementById("confirmPassword");
     const terms = document.getElementById("terms");
@@ -575,7 +659,7 @@
     let isEmailProcessing = false;
     let emailProcessingTimer;
     let isEmailConfirmed = false;
-    let isEmailCheckedAgain = false;
+    let isEmailReviewOpen = false;
     let acceptedFullName = "";
     let acceptedEmail = "";
     let selectedPhoneDigits = Array(10).fill(null);
@@ -772,7 +856,7 @@
     });
 
     function unlockEmail() {
-      if (!isEmailProcessing && !isEmailConfirmed) {
+      if (!isEmailProcessing && !isEmailConfirmed && !isEmailReviewOpen) {
         email.readOnly = false;
       }
     }
@@ -795,14 +879,12 @@
 
       acceptedEmail = enteredValue;
       isEmailConfirmed = false;
-      isEmailCheckedAgain = false;
+      isEmailReviewOpen = false;
       confirmEmail.disabled = true;
       confirmEmail.textContent = "Confirm email";
       confirmEmail.classList.remove("confirmed");
-      recheckEmail.hidden = true;
-      recheckEmail.disabled = false;
-      recheckEmail.textContent = "Check email again";
-      recheckEmail.classList.remove("confirmed");
+      emailConfirmModal.classList.remove("show");
+      emailConfirmModal.setAttribute("aria-hidden", "true");
 
       if (isEmailProcessing) return;
 
@@ -834,16 +916,14 @@
       isEmailProcessing = false;
       acceptedEmail = "";
       isEmailConfirmed = false;
-      isEmailCheckedAgain = false;
+      isEmailReviewOpen = false;
       email.value = "";
       email.readOnly = false;
       confirmEmail.disabled = true;
       confirmEmail.textContent = "Confirm email";
       confirmEmail.classList.remove("confirmed");
-      recheckEmail.hidden = true;
-      recheckEmail.disabled = false;
-      recheckEmail.textContent = "Check email again";
-      recheckEmail.classList.remove("confirmed");
+      emailConfirmModal.classList.remove("show");
+      emailConfirmModal.setAttribute("aria-hidden", "true");
       email.setAttribute("aria-busy", "false");
       email.setAttribute("aria-invalid", "false");
       document.getElementById("emailError").textContent = "";
@@ -884,35 +964,41 @@
 
       clearTimeout(emailProcessingTimer);
       isEmailProcessing = false;
-      isEmailConfirmed = true;
-      isEmailCheckedAgain = false;
+      isEmailConfirmed = false;
+      isEmailReviewOpen = true;
       email.readOnly = true;
       email.setAttribute("aria-busy", "false");
       email.setAttribute("aria-invalid", "false");
       document.getElementById("emailError").textContent = "";
       emailProcessing.classList.remove("show");
       confirmEmail.disabled = true;
-      confirmEmail.textContent = "Email confirmed";
-      confirmEmail.classList.add("confirmed");
-      recheckEmail.hidden = false;
-      recheckEmail.disabled = false;
-      recheckEmail.textContent = "Check email again";
-      recheckEmail.focus();
+      emailToConfirm.textContent = email.value.trim();
+      emailConfirmModal.classList.add("show");
+      emailConfirmModal.setAttribute("aria-hidden", "false");
+      acceptEmail.focus();
     });
 
-    recheckEmail.addEventListener("click", () => {
-      if (!isEmailConfirmed || !validEmail(email.value.trim())) {
-        showError(email, "emailError", "Email is not valid. Please enter it again.");
-        return;
-      }
-
-      isEmailCheckedAgain = true;
-      email.setAttribute("aria-invalid", "false");
-      document.getElementById("emailError").textContent = "";
-      recheckEmail.disabled = true;
-      recheckEmail.textContent = "Email checked";
-      recheckEmail.classList.add("confirmed");
+    acceptEmail.addEventListener("click", () => {
+      isEmailReviewOpen = false;
+      isEmailConfirmed = true;
+      emailConfirmModal.classList.remove("show");
+      emailConfirmModal.setAttribute("aria-hidden", "true");
+      confirmEmail.disabled = true;
+      confirmEmail.textContent = "Email confirmed";
+      confirmEmail.classList.add("confirmed");
       password.focus();
+    });
+
+    editEmail.addEventListener("click", () => {
+      isEmailReviewOpen = false;
+      isEmailConfirmed = false;
+      emailConfirmModal.classList.remove("show");
+      emailConfirmModal.setAttribute("aria-hidden", "true");
+      confirmEmail.disabled = !validEmail(email.value.trim());
+      confirmEmail.textContent = "Confirm email";
+      confirmEmail.classList.remove("confirmed");
+      email.readOnly = false;
+      email.focus();
     });
 
     document.querySelectorAll(".show-password").forEach((button) => {
@@ -954,9 +1040,6 @@
         isValid = false;
       } else if (!isEmailConfirmed) {
         showError(email, "emailError", "Please confirm your email address.");
-        isValid = false;
-      } else if (!isEmailCheckedAgain) {
-        showError(email, "emailError", "Please check your email again.");
         isValid = false;
       }
 
