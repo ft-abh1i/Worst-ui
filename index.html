@@ -221,8 +221,11 @@
     }
 
     .floating-letter-stage {
-      position: relative;
-      height: 290px;
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 40px));
+      justify-content: center;
+      gap: 9px;
+      padding: 14px;
       overflow: hidden;
       background:
         radial-gradient(circle at 25% 20%, rgba(99, 102, 241, 0.3), transparent 34%),
@@ -233,9 +236,9 @@
     }
 
     .floating-letter {
-      position: absolute;
-      width: 38px;
-      height: 38px;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1;
       display: grid;
       place-items: center;
       color: #172033;
@@ -249,8 +252,6 @@
       touch-action: manipulation;
       box-shadow: 0 5px 12px rgba(0, 0, 0, 0.25);
       transition:
-        left 1.8s linear,
-        top 1.8s linear,
         transform 0.12s,
         background 0.12s;
     }
@@ -767,7 +768,7 @@
     <div class="floating-keyboard-card">
       <h2 id="floatingKeyboardTitle">Catch the letters</h2>
       <p class="floating-keyboard-help">
-        Tap the fast-moving letters to type at least 6 letters.
+        Tap a letter to type it. The keyboard shuffles after every tap.
       </p>
       <div
         class="floating-name-preview empty"
@@ -984,7 +985,6 @@
     const restartPhone = document.getElementById("restartPhone");
     const phoneDigitBoxes = Array.from(document.querySelectorAll(".phone-digit"));
     let floatingNameDraft = "";
-    let floatingKeyboardTimer;
     let isEmailProcessing = false;
     let emailProcessingTimer;
     let isEmailConfirmed = false;
@@ -1119,16 +1119,19 @@
       clearNameKeyboard.disabled = !floatingNameDraft;
     }
 
-    function moveFloatingLetters() {
-      const stageWidth = floatingLetterStage.clientWidth;
-      const stageHeight = floatingLetterStage.clientHeight;
+    function shuffleFloatingLetters() {
+      const buttons = Array.from(floatingLetterStage.children);
 
-      document.querySelectorAll(".floating-letter").forEach((button) => {
-        const maxLeft = Math.max(0, stageWidth - button.offsetWidth);
-        const maxTop = Math.max(0, stageHeight - button.offsetHeight);
-        button.style.left = Math.random() * maxLeft + "px";
-        button.style.top = Math.random() * maxTop + "px";
-        button.style.zIndex = String(1 + Math.floor(Math.random() * 6));
+      for (let index = buttons.length - 1; index > 0; index -= 1) {
+        const randomIndex = Math.floor(Math.random() * (index + 1));
+        [buttons[index], buttons[randomIndex]] = [
+          buttons[randomIndex],
+          buttons[index]
+        ];
+      }
+
+      buttons.forEach((button) => {
+        floatingLetterStage.appendChild(button);
       });
     }
 
@@ -1150,30 +1153,13 @@
             ? letter
             : letter.toLowerCase();
           updateFloatingNamePreview();
-
-          const maxLeft = Math.max(
-            0,
-            floatingLetterStage.clientWidth - button.offsetWidth
-          );
-          const maxTop = Math.max(
-            0,
-            floatingLetterStage.clientHeight - button.offsetHeight
-          );
-          button.style.left = Math.random() * maxLeft + "px";
-          button.style.top = Math.random() * maxTop + "px";
+          shuffleFloatingLetters();
         });
         floatingLetterStage.appendChild(button);
       });
     }
 
-    function startFloatingKeyboard() {
-      clearInterval(floatingKeyboardTimer);
-      moveFloatingLetters();
-      floatingKeyboardTimer = setInterval(moveFloatingLetters, 1900);
-    }
-
     function closeFloatingKeyboard() {
-      clearInterval(floatingKeyboardTimer);
       floatingKeyboardModal.classList.remove("show");
       floatingKeyboardModal.setAttribute("aria-hidden", "true");
       fullName.blur();
@@ -1187,7 +1173,7 @@
       updateFloatingNamePreview();
       floatingKeyboardModal.classList.add("show");
       floatingKeyboardModal.setAttribute("aria-hidden", "false");
-      requestAnimationFrame(startFloatingKeyboard);
+      shuffleFloatingLetters();
       cancelNameKeyboard.focus();
     }
 
@@ -1208,12 +1194,14 @@
       ) {
         floatingNameDraft += " ";
         updateFloatingNamePreview();
+        shuffleFloatingLetters();
       }
     });
 
     clearNameKeyboard.addEventListener("click", () => {
       floatingNameDraft = "";
       updateFloatingNamePreview();
+      shuffleFloatingLetters();
     });
 
     cancelNameKeyboard.addEventListener("click", () => {
