@@ -550,6 +550,12 @@
       transform: translateY(1px);
     }
 
+    .dob-year-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+    }
+
     .password-box {
       position: relative;
     }
@@ -798,10 +804,15 @@
             </div>
             <div class="dob-unit">
               <span class="dob-unit-label">Year</span>
-              <span class="dob-value" id="dobYearValue">2000</span>
-              <button type="button" class="dob-step-button" id="addDobYear">
-                +1 Year
-              </button>
+              <span class="dob-value" id="dobYearValue">1900</span>
+              <div class="dob-year-actions">
+                <button type="button" class="dob-step-button" id="addDobYearTen">
+                  +10
+                </button>
+                <button type="button" class="dob-step-button" id="addDobYearOne">
+                  +1
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1060,7 +1071,8 @@
     const dobYearValue = document.getElementById("dobYearValue");
     const addDobDay = document.getElementById("addDobDay");
     const addDobMonth = document.getElementById("addDobMonth");
-    const addDobYear = document.getElementById("addDobYear");
+    const addDobYearTen = document.getElementById("addDobYearTen");
+    const addDobYearOne = document.getElementById("addDobYearOne");
     const dobError = document.getElementById("dobError");
     const emailConfirmModal = document.getElementById("emailConfirmModal");
     const emailConfirmTitle = document.getElementById("emailConfirmTitle");
@@ -1095,7 +1107,7 @@
     let floatingNameDraft = "";
     let dobDay = 1;
     let dobMonth = 1;
-    let dobYear = 2000;
+    let dobYear = 1900;
     let isEmailProcessing = false;
     let emailProcessingTimer;
     let isEmailConfirmed = false;
@@ -1150,7 +1162,7 @@
     function resetDob() {
       dobDay = 1;
       dobMonth = 1;
-      dobYear = 2000;
+      dobYear = 1900;
       updateDob();
     }
 
@@ -1171,10 +1183,20 @@
       updateDob();
     });
 
-    addDobYear.addEventListener("click", () => {
+    function increaseDobYear(amount) {
       const currentYear = new Date().getFullYear();
-      dobYear = dobYear >= currentYear ? 1900 : dobYear + 1;
+      dobYear = dobYear + amount > currentYear
+        ? 1900
+        : dobYear + amount;
       updateDob();
+    }
+
+    addDobYearTen.addEventListener("click", () => {
+      increaseDobYear(10);
+    });
+
+    addDobYearOne.addEventListener("click", () => {
+      increaseDobYear(1);
     });
 
     function startPhoneCounter() {
