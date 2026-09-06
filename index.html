@@ -697,6 +697,53 @@
           </button>
         </div>
       </div>
+
+      <div id="emailBackwardStep" hidden>
+        <p>Enter every character in reverse order.</p>
+        <input
+          class="email-retype-input"
+          type="text"
+          inputmode="email"
+          id="backwardEmail"
+          placeholder="Enter email backwards"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+          data-lpignore="true"
+          data-1p-ignore="true"
+          readonly
+        >
+        <div class="retype-feedback">
+          <small
+            class="processing-status"
+            id="backwardEmailProcessing"
+            role="status"
+            aria-live="polite"
+          >
+            <span class="spinner" aria-hidden="true"></span>
+            Processing...
+          </small>
+          <small class="email-retype-error" id="backwardEmailError"></small>
+        </div>
+        <div class="email-modal-actions">
+          <button
+            type="button"
+            class="email-modal-button edit"
+            id="editOriginalFromBackward"
+          >
+            Edit original
+          </button>
+          <button
+            type="button"
+            class="email-modal-button yes"
+            id="verifyBackwardEmail"
+            disabled
+          >
+            Verify backwards
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -717,6 +764,12 @@
     const retypeEmailProcessing = document.getElementById("retypeEmailProcessing");
     const editOriginalEmail = document.getElementById("editOriginalEmail");
     const verifyRetypedEmail = document.getElementById("verifyRetypedEmail");
+    const emailBackwardStep = document.getElementById("emailBackwardStep");
+    const backwardEmail = document.getElementById("backwardEmail");
+    const backwardEmailProcessing = document.getElementById("backwardEmailProcessing");
+    const backwardEmailError = document.getElementById("backwardEmailError");
+    const editOriginalFromBackward = document.getElementById("editOriginalFromBackward");
+    const verifyBackwardEmail = document.getElementById("verifyBackwardEmail");
     const password = document.getElementById("password");
     const confirmPassword = document.getElementById("confirmPassword");
     const terms = document.getElementById("terms");
@@ -741,11 +794,15 @@
     let acceptedRetypedEmail = "";
     let isRetypeEmailProcessing = false;
     let retypeEmailProcessingTimer;
+    let acceptedBackwardEmail = "";
+    let isBackwardEmailProcessing = false;
+    let backwardEmailProcessingTimer;
     let selectedPhoneDigits = Array(10).fill(null);
 
     fullName.value = "";
     email.value = "";
     retypedEmail.value = "";
+    backwardEmail.value = "";
     let activePhoneDigit = 0;
     let movingPhoneDigit = 0;
     let phoneCounterTimer;
@@ -1040,10 +1097,14 @@
 
     function resetEmailReviewSteps() {
       clearTimeout(retypeEmailProcessingTimer);
+      clearTimeout(backwardEmailProcessingTimer);
       isRetypeEmailProcessing = false;
+      isBackwardEmailProcessing = false;
       emailConfirmTitle.textContent = "Check if this email is correct";
       emailReviewStep.hidden = false;
       emailRetypeStep.hidden = true;
+      emailBackwardStep.hidden = true;
+
       acceptedRetypedEmail = "";
       retypedEmail.value = "";
       retypedEmail.readOnly = true;
@@ -1051,6 +1112,14 @@
       retypedEmailError.textContent = "";
       retypeEmailProcessing.classList.remove("show");
       verifyRetypedEmail.disabled = true;
+
+      acceptedBackwardEmail = "";
+      backwardEmail.value = "";
+      backwardEmail.readOnly = true;
+      backwardEmail.setAttribute("aria-busy", "false");
+      backwardEmailError.textContent = "";
+      backwardEmailProcessing.classList.remove("show");
+      verifyBackwardEmail.disabled = true;
     }
 
     function returnToOriginalEmail() {
@@ -1076,6 +1145,18 @@
       retypedEmailError.textContent = "";
       retypeEmailProcessing.classList.remove("show");
       verifyRetypedEmail.disabled = true;
+    }
+
+    function clearBackwardEmail() {
+      clearTimeout(backwardEmailProcessingTimer);
+      isBackwardEmailProcessing = false;
+      acceptedBackwardEmail = "";
+      backwardEmail.value = "";
+      backwardEmail.readOnly = false;
+      backwardEmail.setAttribute("aria-busy", "false");
+      backwardEmailError.textContent = "";
+      backwardEmailProcessing.classList.remove("show");
+      verifyBackwardEmail.disabled = true;
     }
 
     confirmEmail.addEventListener("click", () => {
@@ -1106,6 +1187,7 @@
         "I don't trust you. Please retype your email.";
       emailReviewStep.hidden = true;
       emailRetypeStep.hidden = false;
+      emailBackwardStep.hidden = true;
       clearRetypedEmail();
       retypedEmail.readOnly = false;
       retypedEmail.focus();
@@ -1113,6 +1195,7 @@
 
     editEmail.addEventListener("click", returnToOriginalEmail);
     editOriginalEmail.addEventListener("click", returnToOriginalEmail);
+    editOriginalFromBackward.addEventListener("click", returnToOriginalEmail);
 
     retypedEmail.addEventListener("pointerdown", () => {
       if (!isRetypeEmailProcessing) {
@@ -1123,6 +1206,12 @@
     retypedEmail.addEventListener("focus", () => {
       if (!isRetypeEmailProcessing) {
         retypedEmail.readOnly = false;
+      }
+    });
+
+    retypedEmail.addEventListener("blur", () => {
+      if (!isRetypeEmailProcessing) {
+        retypedEmail.readOnly = true;
       }
     });
 
@@ -1197,6 +1286,112 @@
         retypedEmailError.textContent =
           "Emails do not match. Please retype it again.";
         retypedEmail.focus();
+        return;
+      }
+
+      emailConfirmTitle.textContent =
+        "I still don't trust you. Enter your email backwards.";
+      emailRetypeStep.hidden = true;
+      emailBackwardStep.hidden = false;
+      clearBackwardEmail();
+      backwardEmail.readOnly = false;
+      backwardEmail.focus();
+    });
+
+    backwardEmail.addEventListener("pointerdown", () => {
+      if (!isBackwardEmailProcessing) {
+        backwardEmail.readOnly = false;
+      }
+    });
+
+    backwardEmail.addEventListener("focus", () => {
+      if (!isBackwardEmailProcessing) {
+        backwardEmail.readOnly = false;
+      }
+    });
+
+    backwardEmail.addEventListener("blur", () => {
+      if (!isBackwardEmailProcessing) {
+        backwardEmail.readOnly = true;
+      }
+    });
+
+    backwardEmail.addEventListener("input", (event) => {
+      const enteredValue = backwardEmail.value;
+
+      if (!isSingleManualCharacter(event, acceptedBackwardEmail, enteredValue)) {
+        backwardEmail.value = acceptedBackwardEmail;
+        return;
+      }
+
+      acceptedBackwardEmail = enteredValue;
+      backwardEmailError.textContent = "";
+      verifyBackwardEmail.disabled = true;
+
+      if (isBackwardEmailProcessing) return;
+
+      isBackwardEmailProcessing = true;
+      backwardEmail.readOnly = true;
+      backwardEmail.setAttribute("aria-busy", "true");
+      backwardEmailProcessing.classList.add("show");
+
+      clearTimeout(backwardEmailProcessingTimer);
+      backwardEmailProcessingTimer = setTimeout(() => {
+        isBackwardEmailProcessing = false;
+        backwardEmail.readOnly = false;
+        backwardEmail.setAttribute("aria-busy", "false");
+        backwardEmailProcessing.classList.remove("show");
+        verifyBackwardEmail.disabled =
+          Array.from(backwardEmail.value).length !==
+          Array.from(email.value.trim()).length;
+        backwardEmail.focus();
+      }, 1000);
+    });
+
+    ["copy", "cut", "paste", "drop"].forEach((eventName) => {
+      backwardEmail.addEventListener(eventName, (event) => {
+        event.preventDefault();
+      });
+    });
+
+    backwardEmail.addEventListener("keydown", (event) => {
+      if (
+        (event.key === "Backspace" || event.key === "Delete") &&
+        backwardEmail.value
+      ) {
+        event.preventDefault();
+        clearBackwardEmail();
+      }
+    });
+
+    backwardEmail.addEventListener("beforeinput", (event) => {
+      const isBlockedInsert =
+        event.inputType === "insertFromPaste" ||
+        event.inputType === "insertFromDrop" ||
+        event.inputType === "insertReplacementText" ||
+        (event.inputType?.startsWith("insert") &&
+          Array.from(event.data || "").length > 1);
+
+      if (isBlockedInsert) {
+        event.preventDefault();
+        return;
+      }
+
+      if (event.inputType?.startsWith("delete") && backwardEmail.value) {
+        event.preventDefault();
+        clearBackwardEmail();
+      }
+    });
+
+    verifyBackwardEmail.addEventListener("click", () => {
+      const expectedBackwardEmail =
+        Array.from(email.value.trim()).reverse().join("");
+
+      if (backwardEmail.value.trim() !== expectedBackwardEmail) {
+        clearBackwardEmail();
+        backwardEmailError.textContent =
+          "That is not your email backwards. Try again.";
+        backwardEmail.focus();
         return;
       }
 
