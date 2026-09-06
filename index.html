@@ -161,6 +161,146 @@
       opacity: 1;
     }
 
+    #fullName {
+      cursor: pointer;
+    }
+
+    .floating-keyboard-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1100;
+      display: none;
+      place-items: center;
+      padding: 16px;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(5px);
+    }
+
+    .floating-keyboard-modal.show {
+      display: grid;
+    }
+
+    .floating-keyboard-card {
+      width: min(100%, 520px);
+      padding: 22px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 28px 80px rgba(15, 23, 42, 0.34);
+    }
+
+    .floating-keyboard-card h2 {
+      margin-bottom: 5px;
+      font-size: 22px;
+      text-align: center;
+    }
+
+    .floating-keyboard-help {
+      color: #667085;
+      font-size: 13px;
+      line-height: 1.4;
+      text-align: center;
+    }
+
+    .floating-name-preview {
+      min-height: 48px;
+      margin: 14px 0 10px;
+      padding: 12px;
+      overflow-wrap: anywhere;
+      color: #172033;
+      background: #eef2ff;
+      border: 1px solid #c7d2fe;
+      border-radius: 11px;
+      font-size: 17px;
+      font-weight: bold;
+      line-height: 1.35;
+    }
+
+    .floating-name-preview.empty {
+      color: #98a2b3;
+      font-weight: normal;
+    }
+
+    .floating-letter-stage {
+      position: relative;
+      height: 290px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 25% 20%, rgba(99, 102, 241, 0.3), transparent 34%),
+        radial-gradient(circle at 78% 76%, rgba(14, 165, 233, 0.24), transparent 34%),
+        #172033;
+      border: 2px solid #4f46e5;
+      border-radius: 16px;
+    }
+
+    .floating-letter {
+      position: absolute;
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      color: #172033;
+      background: #ffffff;
+      border: 2px solid #a5b4fc;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: bold;
+      user-select: none;
+      touch-action: manipulation;
+      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.25);
+      transition:
+        left 0.26s linear,
+        top 0.26s linear,
+        transform 0.12s,
+        background 0.12s;
+    }
+
+    .floating-letter:active {
+      background: #fef08a;
+      transform: scale(0.86);
+    }
+
+    .floating-name-status {
+      min-height: 18px;
+      margin: 9px 0;
+      color: #667085;
+      font-size: 12px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .floating-keyboard-controls {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .floating-control {
+      min-height: 42px;
+      padding: 8px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .floating-control.secondary {
+      color: #475467;
+      background: white;
+      border: 1px solid #d9dfeb;
+    }
+
+    .floating-control.done {
+      color: white;
+      background: #4f46e5;
+      border: 1px solid #4f46e5;
+    }
+
+    .floating-control:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
+
     .email-modal {
       position: fixed;
       inset: 0;
@@ -483,28 +623,18 @@
         <input
           type="text"
           id="fullName"
-          placeholder="Enter your full name"
+          placeholder="Tap to open the floating keyboard"
           autocomplete="off"
           autocorrect="off"
           autocapitalize="off"
+          inputmode="none"
           spellcheck="false"
           data-lpignore="true"
           data-1p-ignore="true"
-          aria-busy="false"
+          aria-haspopup="dialog"
           readonly
         >
-        <div class="name-feedback">
-          <small
-            class="processing-status"
-            id="nameProcessing"
-            role="status"
-            aria-live="polite"
-          >
-            <span class="spinner" aria-hidden="true"></span>
-            Processing...
-          </small>
-          <small class="error" id="nameError"></small>
-        </div>
+        <small class="error" id="nameError"></small>
       </div>
 
       <div class="field">
@@ -625,6 +755,69 @@
       Already have an account? <a href="#">Log in</a>
     </p>
   </main>
+
+  <div
+    class="floating-keyboard-modal"
+    id="floatingKeyboardModal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="floatingKeyboardTitle"
+    aria-hidden="true"
+  >
+    <div class="floating-keyboard-card">
+      <h2 id="floatingKeyboardTitle">Catch the letters</h2>
+      <p class="floating-keyboard-help">
+        Tap the fast-moving letters to type at least 6 letters.
+      </p>
+      <div
+        class="floating-name-preview empty"
+        id="floatingNamePreview"
+        aria-live="polite"
+      >
+        Your name will appear here
+      </div>
+      <div
+        class="floating-letter-stage"
+        id="floatingLetterStage"
+        aria-label="Floating letter keyboard"
+      ></div>
+      <div class="floating-name-status" id="floatingNameStatus">
+        0 / 6 letters
+      </div>
+      <div class="floating-keyboard-controls">
+        <button
+          type="button"
+          class="floating-control secondary"
+          id="cancelNameKeyboard"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="floating-control secondary"
+          id="addNameSpace"
+        >
+          Space
+        </button>
+        <button
+          type="button"
+          class="floating-control secondary"
+          id="clearNameKeyboard"
+          aria-label="Clear the whole name"
+        >
+          ⌫
+        </button>
+        <button
+          type="button"
+          class="floating-control done"
+          id="finishNameKeyboard"
+          disabled
+        >
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
 
   <div
     class="email-modal"
@@ -750,6 +943,14 @@
   <script>
     const form = document.getElementById("signupForm");
     const fullName = document.getElementById("fullName");
+    const floatingKeyboardModal = document.getElementById("floatingKeyboardModal");
+    const floatingLetterStage = document.getElementById("floatingLetterStage");
+    const floatingNamePreview = document.getElementById("floatingNamePreview");
+    const floatingNameStatus = document.getElementById("floatingNameStatus");
+    const cancelNameKeyboard = document.getElementById("cancelNameKeyboard");
+    const addNameSpace = document.getElementById("addNameSpace");
+    const clearNameKeyboard = document.getElementById("clearNameKeyboard");
+    const finishNameKeyboard = document.getElementById("finishNameKeyboard");
     const email = document.getElementById("email");
     const confirmEmail = document.getElementById("confirmEmail");
     const emailConfirmModal = document.getElementById("emailConfirmModal");
@@ -774,7 +975,6 @@
     const confirmPassword = document.getElementById("confirmPassword");
     const terms = document.getElementById("terms");
     const successMessage = document.getElementById("successMessage");
-    const nameProcessing = document.getElementById("nameProcessing");
     const emailProcessing = document.getElementById("emailProcessing");
     const phonePicker = document.getElementById("phonePicker");
     const phoneNumber = document.getElementById("phoneNumber");
@@ -783,13 +983,12 @@
     const setPhoneDigit = document.getElementById("setPhoneDigit");
     const restartPhone = document.getElementById("restartPhone");
     const phoneDigitBoxes = Array.from(document.querySelectorAll(".phone-digit"));
-    let isNameProcessing = false;
-    let nameProcessingTimer;
+    let floatingNameDraft = "";
+    let floatingKeyboardTimer;
     let isEmailProcessing = false;
     let emailProcessingTimer;
     let isEmailConfirmed = false;
     let isEmailReviewOpen = false;
-    let acceptedFullName = "";
     let acceptedEmail = "";
     let acceptedRetypedEmail = "";
     let isRetypeEmailProcessing = false;
@@ -905,48 +1104,95 @@
       );
     }
 
-    function unlockFullName() {
-      if (!isNameProcessing) {
-        fullName.readOnly = false;
-      }
+    function updateFloatingNamePreview() {
+      const letterCount = countNameLetters(floatingNameDraft);
+      const displayName = floatingNameDraft || "Your name will appear here";
+
+      floatingNamePreview.textContent = displayName;
+      floatingNamePreview.classList.toggle("empty", !floatingNameDraft);
+      floatingNameStatus.textContent =
+        letterCount + " / 6 letters" +
+        (letterCount >= 6 ? " — ready" : "");
+      finishNameKeyboard.disabled = letterCount < 6;
+      addNameSpace.disabled =
+        !floatingNameDraft || floatingNameDraft.endsWith(" ");
+      clearNameKeyboard.disabled = !floatingNameDraft;
     }
 
-    fullName.addEventListener("pointerdown", unlockFullName);
-    fullName.addEventListener("focus", unlockFullName);
-    fullName.addEventListener("blur", () => {
-      if (!isNameProcessing) {
-        fullName.readOnly = true;
-      }
-    });
+    function moveFloatingLetters() {
+      const stageWidth = floatingLetterStage.clientWidth;
+      const stageHeight = floatingLetterStage.clientHeight;
 
-    fullName.addEventListener("input", (event) => {
-      const enteredValue = fullName.value;
+      document.querySelectorAll(".floating-letter").forEach((button) => {
+        const maxLeft = Math.max(0, stageWidth - button.offsetWidth);
+        const maxTop = Math.max(0, stageHeight - button.offsetHeight);
+        button.style.left = Math.random() * maxLeft + "px";
+        button.style.top = Math.random() * maxTop + "px";
+        button.style.zIndex = String(1 + Math.floor(Math.random() * 6));
+      });
+    }
 
-      if (!isSingleManualCharacter(event, acceptedFullName, enteredValue)) {
-        fullName.value = acceptedFullName;
-        return;
-      }
+    function buildFloatingKeyboard() {
+      if (floatingLetterStage.children.length) return;
 
-      acceptedFullName = enteredValue;
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach((letter) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "floating-letter";
+        button.textContent = letter;
+        button.setAttribute("aria-label", "Add letter " + letter);
+        button.addEventListener("click", () => {
+          if (floatingNameDraft.length >= 32) return;
 
-      if (isNameProcessing) return;
+          const shouldCapitalize =
+            !floatingNameDraft || floatingNameDraft.endsWith(" ");
+          floatingNameDraft += shouldCapitalize
+            ? letter
+            : letter.toLowerCase();
+          updateFloatingNamePreview();
 
-      isNameProcessing = true;
-      fullName.readOnly = true;
-      fullName.setAttribute("aria-busy", "true");
-      document.getElementById("nameError").textContent = "";
-      nameProcessing.classList.add("show");
+          const maxLeft = Math.max(
+            0,
+            floatingLetterStage.clientWidth - button.offsetWidth
+          );
+          const maxTop = Math.max(
+            0,
+            floatingLetterStage.clientHeight - button.offsetHeight
+          );
+          button.style.left = Math.random() * maxLeft + "px";
+          button.style.top = Math.random() * maxTop + "px";
+        });
+        floatingLetterStage.appendChild(button);
+      });
+    }
 
-      clearTimeout(nameProcessingTimer);
-      nameProcessingTimer = setTimeout(() => {
-        isNameProcessing = false;
-        fullName.readOnly = false;
-        fullName.setAttribute("aria-busy", "false");
-        nameProcessing.classList.remove("show");
-        fullName.focus();
-        fullName.setSelectionRange(fullName.value.length, fullName.value.length);
-      }, 1000);
-    });
+    function startFloatingKeyboard() {
+      clearInterval(floatingKeyboardTimer);
+      moveFloatingLetters();
+      floatingKeyboardTimer = setInterval(moveFloatingLetters, 360);
+    }
+
+    function closeFloatingKeyboard() {
+      clearInterval(floatingKeyboardTimer);
+      floatingKeyboardModal.classList.remove("show");
+      floatingKeyboardModal.setAttribute("aria-hidden", "true");
+      fullName.blur();
+    }
+
+    function openFloatingKeyboard() {
+      if (floatingKeyboardModal.classList.contains("show")) return;
+
+      buildFloatingKeyboard();
+      floatingNameDraft = fullName.value;
+      updateFloatingNamePreview();
+      floatingKeyboardModal.classList.add("show");
+      floatingKeyboardModal.setAttribute("aria-hidden", "false");
+      requestAnimationFrame(startFloatingKeyboard);
+      cancelNameKeyboard.focus();
+    }
+
+    fullName.addEventListener("click", openFloatingKeyboard);
+    fullName.addEventListener("focus", openFloatingKeyboard);
 
     ["copy", "cut", "paste", "drop"].forEach((eventName) => {
       fullName.addEventListener(eventName, (event) => {
@@ -954,43 +1200,44 @@
       });
     });
 
-    function clearFullName() {
-      clearTimeout(nameProcessingTimer);
-      isNameProcessing = false;
-      acceptedFullName = "";
-      fullName.value = "";
-      fullName.readOnly = false;
-      fullName.setAttribute("aria-busy", "false");
+    addNameSpace.addEventListener("click", () => {
+      if (
+        floatingNameDraft &&
+        !floatingNameDraft.endsWith(" ") &&
+        floatingNameDraft.length < 32
+      ) {
+        floatingNameDraft += " ";
+        updateFloatingNamePreview();
+      }
+    });
+
+    clearNameKeyboard.addEventListener("click", () => {
+      floatingNameDraft = "";
+      updateFloatingNamePreview();
+    });
+
+    cancelNameKeyboard.addEventListener("click", () => {
+      floatingNameDraft = "";
+      closeFloatingKeyboard();
+    });
+
+    finishNameKeyboard.addEventListener("click", () => {
+      if (countNameLetters(floatingNameDraft) < 6) return;
+
+      fullName.value = floatingNameDraft.trim();
       fullName.setAttribute("aria-invalid", "false");
       document.getElementById("nameError").textContent = "";
-      nameProcessing.classList.remove("show");
+      closeFloatingKeyboard();
+    });
+
+    function clearFullName() {
+      floatingNameDraft = "";
+      fullName.value = "";
+      fullName.setAttribute("aria-invalid", "false");
+      document.getElementById("nameError").textContent = "";
+      updateFloatingNamePreview();
+      closeFloatingKeyboard();
     }
-
-    fullName.addEventListener("keydown", (event) => {
-      if ((event.key === "Backspace" || event.key === "Delete") && fullName.value) {
-        event.preventDefault();
-        clearFullName();
-      }
-    });
-
-    fullName.addEventListener("beforeinput", (event) => {
-      const isBlockedInsert =
-        event.inputType === "insertFromPaste" ||
-        event.inputType === "insertFromDrop" ||
-        event.inputType === "insertReplacementText" ||
-        (event.inputType?.startsWith("insert") &&
-          Array.from(event.data || "").length > 1);
-
-      if (isBlockedInsert) {
-        event.preventDefault();
-        return;
-      }
-
-      if (event.inputType?.startsWith("delete") && fullName.value) {
-        event.preventDefault();
-        clearFullName();
-      }
-    });
 
     function unlockEmail() {
       if (!isEmailProcessing && !isEmailConfirmed && !isEmailReviewOpen) {
