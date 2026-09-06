@@ -209,6 +209,20 @@
       font-weight: bold;
     }
 
+    .email-retype-input {
+      margin-top: 14px;
+      text-align: left;
+    }
+
+    .email-retype-error {
+      display: block;
+      min-height: 16px;
+      margin-top: 7px;
+      color: #c62828;
+      font-size: 12px;
+      text-align: left;
+    }
+
     .email-modal-actions {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -617,17 +631,55 @@
   >
     <div class="email-modal-card">
       <h2 id="emailConfirmTitle">Check if this email is correct</h2>
-      <p>
-        Please check the email once more.
-        <span class="email-to-confirm" id="emailToConfirm"></span>
-      </p>
-      <div class="email-modal-actions">
-        <button type="button" class="email-modal-button edit" id="editEmail">
-          Edit
-        </button>
-        <button type="button" class="email-modal-button yes" id="acceptEmail">
-          Yes
-        </button>
+
+      <div id="emailReviewStep">
+        <p>
+          Please check the email once more.
+          <span class="email-to-confirm" id="emailToConfirm"></span>
+        </p>
+        <div class="email-modal-actions">
+          <button type="button" class="email-modal-button edit" id="editEmail">
+            Edit
+          </button>
+          <button type="button" class="email-modal-button yes" id="acceptEmail">
+            Yes
+          </button>
+        </div>
+      </div>
+
+      <div id="emailRetypeStep" hidden>
+        <p>Type the same email again to continue.</p>
+        <input
+          class="email-retype-input"
+          type="email"
+          id="retypedEmail"
+          placeholder="Retype your email"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+          data-lpignore="true"
+          data-1p-ignore="true"
+          readonly
+        >
+        <small class="email-retype-error" id="retypedEmailError"></small>
+        <div class="email-modal-actions">
+          <button
+            type="button"
+            class="email-modal-button edit"
+            id="editOriginalEmail"
+          >
+            Edit original
+          </button>
+          <button
+            type="button"
+            class="email-modal-button yes"
+            id="verifyRetypedEmail"
+            disabled
+          >
+            Verify email
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -638,9 +690,16 @@
     const email = document.getElementById("email");
     const confirmEmail = document.getElementById("confirmEmail");
     const emailConfirmModal = document.getElementById("emailConfirmModal");
+    const emailConfirmTitle = document.getElementById("emailConfirmTitle");
+    const emailReviewStep = document.getElementById("emailReviewStep");
+    const emailRetypeStep = document.getElementById("emailRetypeStep");
     const emailToConfirm = document.getElementById("emailToConfirm");
     const editEmail = document.getElementById("editEmail");
     const acceptEmail = document.getElementById("acceptEmail");
+    const retypedEmail = document.getElementById("retypedEmail");
+    const retypedEmailError = document.getElementById("retypedEmailError");
+    const editOriginalEmail = document.getElementById("editOriginalEmail");
+    const verifyRetypedEmail = document.getElementById("verifyRetypedEmail");
     const password = document.getElementById("password");
     const confirmPassword = document.getElementById("confirmPassword");
     const terms = document.getElementById("terms");
@@ -662,10 +721,12 @@
     let isEmailReviewOpen = false;
     let acceptedFullName = "";
     let acceptedEmail = "";
+    let acceptedRetypedEmail = "";
     let selectedPhoneDigits = Array(10).fill(null);
 
     fullName.value = "";
     email.value = "";
+    retypedEmail.value = "";
     let activePhoneDigit = 0;
     let movingPhoneDigit = 0;
     let phoneCounterTimer;
@@ -885,6 +946,7 @@
       confirmEmail.classList.remove("confirmed");
       emailConfirmModal.classList.remove("show");
       emailConfirmModal.setAttribute("aria-hidden", "true");
+      resetEmailReviewSteps();
 
       if (isEmailProcessing) return;
 
@@ -928,6 +990,7 @@
       email.setAttribute("aria-invalid", "false");
       document.getElementById("emailError").textContent = "";
       emailProcessing.classList.remove("show");
+      resetEmailReviewSteps();
     }
 
     email.addEventListener("keydown", (event) => {
@@ -956,6 +1019,37 @@
       }
     });
 
+    function resetEmailReviewSteps() {
+      emailConfirmTitle.textContent = "Check if this email is correct";
+      emailReviewStep.hidden = false;
+      emailRetypeStep.hidden = true;
+      acceptedRetypedEmail = "";
+      retypedEmail.value = "";
+      retypedEmail.readOnly = true;
+      retypedEmailError.textContent = "";
+      verifyRetypedEmail.disabled = true;
+    }
+
+    function returnToOriginalEmail() {
+      isEmailReviewOpen = false;
+      isEmailConfirmed = false;
+      emailConfirmModal.classList.remove("show");
+      emailConfirmModal.setAttribute("aria-hidden", "true");
+      resetEmailReviewSteps();
+      confirmEmail.disabled = !validEmail(email.value.trim());
+      confirmEmail.textContent = "Confirm email";
+      confirmEmail.classList.remove("confirmed");
+      email.readOnly = false;
+      email.focus();
+    }
+
+    function clearRetypedEmail() {
+      acceptedRetypedEmail = "";
+      retypedEmail.value = "";
+      retypedEmailError.textContent = "";
+      verifyRetypedEmail.disabled = true;
+    }
+
     confirmEmail.addEventListener("click", () => {
       if (!validEmail(email.value.trim())) {
         showError(email, "emailError", "Please enter a valid email address.");
@@ -972,6 +1066,7 @@
       document.getElementById("emailError").textContent = "";
       emailProcessing.classList.remove("show");
       confirmEmail.disabled = true;
+      resetEmailReviewSteps();
       emailToConfirm.textContent = email.value.trim();
       emailConfirmModal.classList.add("show");
       emailConfirmModal.setAttribute("aria-hidden", "false");
@@ -979,6 +1074,83 @@
     });
 
     acceptEmail.addEventListener("click", () => {
+      emailConfirmTitle.textContent =
+        "I don't trust you. Please retype your email.";
+      emailReviewStep.hidden = true;
+      emailRetypeStep.hidden = false;
+      clearRetypedEmail();
+      retypedEmail.readOnly = false;
+      retypedEmail.focus();
+    });
+
+    editEmail.addEventListener("click", returnToOriginalEmail);
+    editOriginalEmail.addEventListener("click", returnToOriginalEmail);
+
+    retypedEmail.addEventListener("pointerdown", () => {
+      retypedEmail.readOnly = false;
+    });
+
+    retypedEmail.addEventListener("focus", () => {
+      retypedEmail.readOnly = false;
+    });
+
+    retypedEmail.addEventListener("input", (event) => {
+      const enteredValue = retypedEmail.value;
+
+      if (!isSingleManualCharacter(event, acceptedRetypedEmail, enteredValue)) {
+        retypedEmail.value = acceptedRetypedEmail;
+        return;
+      }
+
+      acceptedRetypedEmail = enteredValue;
+      retypedEmailError.textContent = "";
+      verifyRetypedEmail.disabled = !validEmail(retypedEmail.value.trim());
+    });
+
+    ["copy", "cut", "paste", "drop"].forEach((eventName) => {
+      retypedEmail.addEventListener(eventName, (event) => {
+        event.preventDefault();
+      });
+    });
+
+    retypedEmail.addEventListener("keydown", (event) => {
+      if (
+        (event.key === "Backspace" || event.key === "Delete") &&
+        retypedEmail.value
+      ) {
+        event.preventDefault();
+        clearRetypedEmail();
+      }
+    });
+
+    retypedEmail.addEventListener("beforeinput", (event) => {
+      const isBlockedInsert =
+        event.inputType === "insertFromPaste" ||
+        event.inputType === "insertFromDrop" ||
+        event.inputType === "insertReplacementText" ||
+        (event.inputType?.startsWith("insert") &&
+          Array.from(event.data || "").length > 1);
+
+      if (isBlockedInsert) {
+        event.preventDefault();
+        return;
+      }
+
+      if (event.inputType?.startsWith("delete") && retypedEmail.value) {
+        event.preventDefault();
+        clearRetypedEmail();
+      }
+    });
+
+    verifyRetypedEmail.addEventListener("click", () => {
+      if (retypedEmail.value.trim() !== email.value.trim()) {
+        clearRetypedEmail();
+        retypedEmailError.textContent =
+          "Emails do not match. Please retype it again.";
+        retypedEmail.focus();
+        return;
+      }
+
       isEmailReviewOpen = false;
       isEmailConfirmed = true;
       emailConfirmModal.classList.remove("show");
@@ -987,18 +1159,6 @@
       confirmEmail.textContent = "Email confirmed";
       confirmEmail.classList.add("confirmed");
       password.focus();
-    });
-
-    editEmail.addEventListener("click", () => {
-      isEmailReviewOpen = false;
-      isEmailConfirmed = false;
-      emailConfirmModal.classList.remove("show");
-      emailConfirmModal.setAttribute("aria-hidden", "true");
-      confirmEmail.disabled = !validEmail(email.value.trim());
-      confirmEmail.textContent = "Confirm email";
-      confirmEmail.classList.remove("confirmed");
-      email.readOnly = false;
-      email.focus();
     });
 
     document.querySelectorAll(".show-password").forEach((button) => {
