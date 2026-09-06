@@ -189,7 +189,8 @@
       border-color: #b7ead8;
     }
 
-    #passwordError.accepted {
+    #passwordError.accepted,
+    #confirmError.accepted {
       color: #087f5b;
     }
 
@@ -870,7 +871,19 @@
             autocomplete="new-password"
           >
         </div>
-        <small class="error" id="confirmError"></small>
+        <button
+          type="button"
+          class="password-confirm"
+          id="confirmBackwardPassword"
+          aria-describedby="confirmError"
+        >
+          Confirm
+        </button>
+        <small
+          class="error"
+          id="confirmError"
+          aria-live="polite"
+        ></small>
       </div>
 
       <label class="terms" for="terms">
@@ -1118,6 +1131,9 @@
       document.getElementById("confirmPasswordRules");
     const passwordError = document.getElementById("passwordError");
     const confirmPassword = document.getElementById("confirmPassword");
+    const confirmBackwardPassword =
+      document.getElementById("confirmBackwardPassword");
+    const confirmError = document.getElementById("confirmError");
     const terms = document.getElementById("terms");
     const successMessage = document.getElementById("successMessage");
     const emailProcessing = document.getElementById("emailProcessing");
@@ -1136,6 +1152,7 @@
     let emailProcessingTimer;
     let isEmailConfirmed = false;
     let isPasswordConfirmed = false;
+    let isBackwardPasswordConfirmed = false;
     let isEmailReviewOpen = false;
     let acceptedEmail = "";
     let acceptedRetypedEmail = "";
@@ -1227,14 +1244,27 @@
       return rules.find((rule) => !rule.passes)?.message || "";
     }
 
+    function resetBackwardPasswordConfirmation(clearValue = false) {
+      isBackwardPasswordConfirmed = false;
+      confirmBackwardPassword.disabled = false;
+      confirmBackwardPassword.textContent = "Confirm";
+      confirmBackwardPassword.classList.remove("confirmed");
+      confirmError.classList.remove("accepted");
+
+      if (clearValue) {
+        confirmPassword.value = "";
+      }
+
+      showError(confirmPassword, "confirmError", "");
+    }
+
     function resetPasswordConfirmation() {
       isPasswordConfirmed = false;
       confirmPasswordRules.disabled = false;
       confirmPasswordRules.textContent = "Confirm";
       confirmPasswordRules.classList.remove("confirmed");
       passwordError.classList.remove("accepted");
-      confirmPassword.value = "";
-      showError(confirmPassword, "confirmError", "");
+      resetBackwardPasswordConfirmation(true);
       showError(password, "passwordError", "");
     }
 
@@ -1943,6 +1973,44 @@
       confirmPassword.focus();
     });
 
+    confirmBackwardPassword.addEventListener("click", () => {
+      confirmError.classList.remove("accepted");
+
+      if (!isPasswordConfirmed) {
+        isBackwardPasswordConfirmed = false;
+        showError(
+          confirmPassword,
+          "confirmError",
+          "Confirm your original password first."
+        );
+        password.focus();
+        return;
+      }
+
+      if (
+        !confirmPassword.value ||
+        confirmPassword.value !== reversePassword(password.value)
+      ) {
+        isBackwardPasswordConfirmed = false;
+        showError(
+          confirmPassword,
+          "confirmError",
+          "That is not your password backwards."
+        );
+        confirmPassword.focus();
+        return;
+      }
+
+      isBackwardPasswordConfirmed = true;
+      showError(confirmPassword, "confirmError", "");
+      confirmError.textContent = "Backwards password verified.";
+      confirmError.classList.add("accepted");
+      confirmBackwardPassword.textContent = "Password verified";
+      confirmBackwardPassword.classList.add("confirmed");
+      confirmBackwardPassword.disabled = true;
+      terms.focus();
+    });
+
     form.addEventListener("submit", (event) => {
       event.preventDefault();
       let isValid = true;
@@ -1992,14 +2060,11 @@
         isValid = false;
       }
 
-      if (
-        !confirmPassword.value ||
-        confirmPassword.value !== reversePassword(password.value)
-      ) {
+      if (!isBackwardPasswordConfirmed) {
         showError(
           confirmPassword,
           "confirmError",
-          "Enter your original password backwards."
+          "Press Confirm to verify your backwards password."
         );
         isValid = false;
       }
@@ -2028,7 +2093,7 @@
       resetPhoneNumber(false);
     });
 
-    [fullName, email, confirmPassword].forEach((input) => {
+    [fullName, email].forEach((input) => {
       input.addEventListener("input", () => {
         input.setAttribute("aria-invalid", "false");
       });
@@ -2036,6 +2101,10 @@
 
     password.addEventListener("input", () => {
       resetPasswordConfirmation();
+    });
+
+    confirmPassword.addEventListener("input", () => {
+      resetBackwardPasswordConfirmation();
     });
 
     resetDob();
