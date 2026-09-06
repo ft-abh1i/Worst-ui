@@ -826,14 +826,19 @@
           <input
             type="password"
             id="password"
-            placeholder="At least 8 characters"
+            placeholder="Enter a password"
             autocomplete="new-password"
+            aria-describedby="passwordError"
           >
           <button type="button" class="show-password" data-target="password">
             Show
           </button>
         </div>
-        <small class="error" id="passwordError"></small>
+        <small
+          class="error"
+          id="passwordError"
+          aria-live="polite"
+        ></small>
       </div>
 
       <div class="field">
@@ -1136,6 +1141,60 @@
 
     function validEmail(value) {
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    }
+
+    function countPasswordCharacters(value) {
+      if (typeof Intl.Segmenter === "function") {
+        const segmenter = new Intl.Segmenter(undefined, {
+          granularity: "grapheme"
+        });
+        return Array.from(segmenter.segment(value)).length;
+      }
+
+      return Array.from(value).length;
+    }
+
+    function nextPasswordRule(value) {
+      const rules = [
+        {
+          passes: /[A-Z]/.test(value),
+          message: "Add one capital letter."
+        },
+        {
+          passes: /[a-z]/.test(value),
+          message: "Add one small letter."
+        },
+        {
+          passes: /\d/.test(value),
+          message: "Add one digit."
+        },
+        {
+          passes: /\p{Extended_Pictographic}/u.test(value),
+          message: "Add one emoji."
+        },
+        {
+          passes: value.includes("@"),
+          message: "Add the @ symbol."
+        },
+        {
+          passes: value.includes("#"),
+          message: "Add the # symbol."
+        },
+        {
+          passes: value.includes("₹"),
+          message: "Add the ₹ symbol."
+        },
+        {
+          passes: value.includes("&"),
+          message: "Add the & symbol."
+        },
+        {
+          passes: countPasswordCharacters(value) === 26,
+          message: "Make the password exactly 26 characters long."
+        }
+      ];
+
+      return rules.find((rule) => !rule.passes)?.message || "";
     }
 
     function countNameLetters(value) {
@@ -1870,8 +1929,10 @@
         isValid = false;
       }
 
-      if (password.value.length < 8) {
-        showError(password, "passwordError", "Password must have at least 8 characters.");
+      const passwordRule = nextPasswordRule(password.value);
+
+      if (passwordRule) {
+        showError(password, "passwordError", passwordRule);
         isValid = false;
       }
 
@@ -1903,10 +1964,18 @@
       resetPhoneNumber(false);
     });
 
-    [fullName, email, password, confirmPassword].forEach((input) => {
+    [fullName, email, confirmPassword].forEach((input) => {
       input.addEventListener("input", () => {
         input.setAttribute("aria-invalid", "false");
       });
+    });
+
+    password.addEventListener("input", () => {
+      const message = password.value
+        ? nextPasswordRule(password.value)
+        : "";
+
+      showError(password, "passwordError", message);
     });
 
     resetDob();
