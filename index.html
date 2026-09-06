@@ -666,6 +666,104 @@
       display: block;
     }
 
+    @media (min-width: 900px) {
+      body {
+        padding: 44px 28px;
+      }
+
+      .signup-card {
+        width: min(100%, 1020px);
+        padding: 42px 46px 46px;
+        border-radius: 28px;
+        box-shadow: 0 30px 80px rgba(31, 41, 80, 0.18);
+      }
+
+      h1 {
+        font-size: 34px;
+        text-align: center;
+      }
+
+      .subtitle {
+        margin-bottom: 32px;
+        font-size: 17px;
+        text-align: center;
+      }
+
+      #signupForm {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-areas:
+          "name email"
+          "phone dob"
+          "password confirm"
+          "submit submit"
+          "success success";
+        column-gap: 28px;
+        row-gap: 20px;
+      }
+
+      #signupForm > .field {
+        min-width: 0;
+        align-content: start;
+      }
+
+      .name-field {
+        grid-area: name;
+      }
+
+      .phone-field {
+        grid-area: phone;
+      }
+
+      .email-field {
+        grid-area: email;
+      }
+
+      .dob-field {
+        grid-area: dob;
+      }
+
+      .password-field {
+        grid-area: password;
+      }
+
+      .confirm-password-field {
+        grid-area: confirm;
+      }
+
+      .phone-field .phone-picker,
+      .dob-field .dob-picker {
+        min-height: 220px;
+        align-content: start;
+      }
+
+      .submit-btn {
+        grid-area: submit;
+        width: min(100%, 430px);
+        justify-self: center;
+        margin-top: 6px;
+      }
+
+      .success-message {
+        grid-area: success;
+      }
+
+      .floating-keyboard-card {
+        width: min(100%, 720px);
+        padding: 28px;
+      }
+
+      .floating-letter-stage {
+        grid-template-columns: repeat(9, minmax(0, 48px));
+        gap: 12px;
+        padding: 20px;
+      }
+
+      .email-modal-card {
+        width: min(100%, 460px);
+        padding: 30px;
+      }
+    }
+
     @media (max-width: 500px) {
       .signup-card {
         padding: 24px;
@@ -699,7 +797,7 @@
     <p class="subtitle">Enter your details to get started.</p>
 
     <form id="signupForm" novalidate>
-      <div class="field">
+      <div class="field name-field">
         <label for="fullName">Full name</label>
         <input
           type="text"
@@ -718,7 +816,7 @@
         <small class="error" id="nameError"></small>
       </div>
 
-      <div class="field">
+      <div class="field phone-field">
         <label id="phoneLabel">Phone number</label>
         <div
           class="phone-picker"
@@ -758,7 +856,7 @@
         <small class="error" id="phoneError"></small>
       </div>
 
-      <div class="field">
+      <div class="field email-field">
         <label for="email">Email address</label>
         <input
           type="email"
@@ -790,7 +888,7 @@
         </button>
       </div>
 
-      <div class="field">
+      <div class="field dob-field">
         <label id="dobLabel">Date of birth</label>
         <div
           class="dob-picker"
@@ -854,7 +952,7 @@
         <small class="error" id="dobError"></small>
       </div>
 
-      <div class="field">
+      <div class="field password-field">
         <label for="password">Password</label>
         <div class="password-box">
           <input
@@ -880,7 +978,7 @@
         ></small>
       </div>
 
-      <div class="field">
+      <div class="field confirm-password-field">
         <label for="confirmPassword">Confirm password backwards</label>
         <div class="password-box">
           <input
