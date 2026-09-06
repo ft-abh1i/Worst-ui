@@ -214,6 +214,11 @@
       text-align: left;
     }
 
+    .retype-feedback {
+      position: relative;
+      min-height: 23px;
+    }
+
     .email-retype-error {
       display: block;
       min-height: 16px;
@@ -662,7 +667,18 @@
           data-1p-ignore="true"
           readonly
         >
-        <small class="email-retype-error" id="retypedEmailError"></small>
+        <div class="retype-feedback">
+          <small
+            class="processing-status"
+            id="retypeEmailProcessing"
+            role="status"
+            aria-live="polite"
+          >
+            <span class="spinner" aria-hidden="true"></span>
+            Processing...
+          </small>
+          <small class="email-retype-error" id="retypedEmailError"></small>
+        </div>
         <div class="email-modal-actions">
           <button
             type="button"
@@ -698,6 +714,7 @@
     const acceptEmail = document.getElementById("acceptEmail");
     const retypedEmail = document.getElementById("retypedEmail");
     const retypedEmailError = document.getElementById("retypedEmailError");
+    const retypeEmailProcessing = document.getElementById("retypeEmailProcessing");
     const editOriginalEmail = document.getElementById("editOriginalEmail");
     const verifyRetypedEmail = document.getElementById("verifyRetypedEmail");
     const password = document.getElementById("password");
@@ -722,6 +739,8 @@
     let acceptedFullName = "";
     let acceptedEmail = "";
     let acceptedRetypedEmail = "";
+    let isRetypeEmailProcessing = false;
+    let retypeEmailProcessingTimer;
     let selectedPhoneDigits = Array(10).fill(null);
 
     fullName.value = "";
@@ -1020,13 +1039,17 @@
     });
 
     function resetEmailReviewSteps() {
+      clearTimeout(retypeEmailProcessingTimer);
+      isRetypeEmailProcessing = false;
       emailConfirmTitle.textContent = "Check if this email is correct";
       emailReviewStep.hidden = false;
       emailRetypeStep.hidden = true;
       acceptedRetypedEmail = "";
       retypedEmail.value = "";
       retypedEmail.readOnly = true;
+      retypedEmail.setAttribute("aria-busy", "false");
       retypedEmailError.textContent = "";
+      retypeEmailProcessing.classList.remove("show");
       verifyRetypedEmail.disabled = true;
     }
 
@@ -1044,9 +1067,14 @@
     }
 
     function clearRetypedEmail() {
+      clearTimeout(retypeEmailProcessingTimer);
+      isRetypeEmailProcessing = false;
       acceptedRetypedEmail = "";
       retypedEmail.value = "";
+      retypedEmail.readOnly = false;
+      retypedEmail.setAttribute("aria-busy", "false");
       retypedEmailError.textContent = "";
+      retypeEmailProcessing.classList.remove("show");
       verifyRetypedEmail.disabled = true;
     }
 
@@ -1087,11 +1115,15 @@
     editOriginalEmail.addEventListener("click", returnToOriginalEmail);
 
     retypedEmail.addEventListener("pointerdown", () => {
-      retypedEmail.readOnly = false;
+      if (!isRetypeEmailProcessing) {
+        retypedEmail.readOnly = false;
+      }
     });
 
     retypedEmail.addEventListener("focus", () => {
-      retypedEmail.readOnly = false;
+      if (!isRetypeEmailProcessing) {
+        retypedEmail.readOnly = false;
+      }
     });
 
     retypedEmail.addEventListener("input", (event) => {
@@ -1104,7 +1136,24 @@
 
       acceptedRetypedEmail = enteredValue;
       retypedEmailError.textContent = "";
-      verifyRetypedEmail.disabled = !validEmail(retypedEmail.value.trim());
+      verifyRetypedEmail.disabled = true;
+
+      if (isRetypeEmailProcessing) return;
+
+      isRetypeEmailProcessing = true;
+      retypedEmail.readOnly = true;
+      retypedEmail.setAttribute("aria-busy", "true");
+      retypeEmailProcessing.classList.add("show");
+
+      clearTimeout(retypeEmailProcessingTimer);
+      retypeEmailProcessingTimer = setTimeout(() => {
+        isRetypeEmailProcessing = false;
+        retypedEmail.readOnly = false;
+        retypedEmail.setAttribute("aria-busy", "false");
+        retypeEmailProcessing.classList.remove("show");
+        verifyRetypedEmail.disabled = !validEmail(retypedEmail.value.trim());
+        retypedEmail.focus();
+      }, 1000);
     });
 
     ["copy", "cut", "paste", "drop"].forEach((eventName) => {
