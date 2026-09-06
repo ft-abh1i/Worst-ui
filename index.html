@@ -583,10 +583,37 @@
       transform: translateY(1px);
     }
 
+    .dob-step-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.42;
+    }
+
+    .dob-step-button.confirmed {
+      color: #087f5b;
+      background: #eafaf4;
+      border-color: #86d7b9;
+      opacity: 1;
+    }
+
     .dob-year-actions {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 5px;
+    }
+
+    .dob-year-confirm,
+    .dob-year-status {
+      grid-column: 1 / -1;
+    }
+
+    .dob-year-status {
+      min-height: 26px;
+      display: grid;
+      place-items: center;
+      color: #667085;
+      font-size: 10px;
+      font-weight: bold;
+      line-height: 1.25;
     }
 
     .password-box {
@@ -821,12 +848,26 @@
               <span class="dob-unit-label">Year</span>
               <span class="dob-value" id="dobYearValue">1900</span>
               <div class="dob-year-actions">
-                <button type="button" class="dob-step-button" id="addDobYearTen">
-                  +10
+                <button type="button" class="dob-step-button" id="dobYearEarlier">
+                  Earlier
                 </button>
-                <button type="button" class="dob-step-button" id="addDobYearOne">
-                  +1
+                <button type="button" class="dob-step-button" id="dobYearLater">
+                  Later
                 </button>
+                <button
+                  type="button"
+                  class="dob-step-button dob-year-confirm"
+                  id="confirmDobYear"
+                >
+                  Correct
+                </button>
+                <span
+                  class="dob-year-status"
+                  id="dobYearStatus"
+                  aria-live="polite"
+                >
+                  Is 1900 correct?
+                </span>
               </div>
             </div>
           </div>
@@ -1105,8 +1146,10 @@
     const dobYearValue = document.getElementById("dobYearValue");
     const addDobDay = document.getElementById("addDobDay");
     const addDobMonth = document.getElementById("addDobMonth");
-    const addDobYearTen = document.getElementById("addDobYearTen");
-    const addDobYearOne = document.getElementById("addDobYearOne");
+    const dobYearEarlier = document.getElementById("dobYearEarlier");
+    const dobYearLater = document.getElementById("dobYearLater");
+    const confirmDobYear = document.getElementById("confirmDobYear");
+    const dobYearStatus = document.getElementById("dobYearStatus");
     const dobError = document.getElementById("dobError");
     const emailConfirmModal = document.getElementById("emailConfirmModal");
     const emailConfirmTitle = document.getElementById("emailConfirmTitle");
@@ -1145,9 +1188,13 @@
     const restartPhone = document.getElementById("restartPhone");
     const phoneDigitBoxes = Array.from(document.querySelectorAll(".phone-digit"));
     let floatingNameDraft = "";
+    const minimumDobYear = 1900;
     let dobDay = 1;
     let dobMonth = 1;
-    let dobYear = 1900;
+    let dobYear = minimumDobYear;
+    let dobYearLower = minimumDobYear;
+    let dobYearUpper = new Date().getFullYear();
+    let isDobYearConfirmed = false;
     let isEmailProcessing = false;
     let emailProcessingTimer;
     let isEmailConfirmed = false;
@@ -1287,13 +1334,44 @@
         String(dobDay).padStart(2, "0");
       dobPicker.setAttribute("aria-invalid", "false");
       dobError.textContent = "";
+      updateDobYearGuessControls();
+    }
+
+    function updateDobYearGuessControls() {
+      const onlyOneYearLeft = dobYearLower === dobYearUpper;
+
+      dobYearEarlier.disabled =
+        isDobYearConfirmed || dobYear <= dobYearLower;
+      dobYearLater.disabled =
+        isDobYearConfirmed || dobYear >= dobYearUpper;
+      confirmDobYear.textContent =
+        isDobYearConfirmed ? "Start over" : "Correct";
+      confirmDobYear.classList.toggle(
+        "confirmed",
+        isDobYearConfirmed
+      );
+
+      if (isDobYearConfirmed) {
+        dobYearStatus.textContent = "Year confirmed";
+      } else if (onlyOneYearLeft) {
+        dobYearStatus.textContent = "Only one year left. Is this it?";
+      } else {
+        dobYearStatus.textContent = "Is " + dobYear + " correct?";
+      }
+    }
+
+    function resetDobYearGuess() {
+      dobYearLower = minimumDobYear;
+      dobYearUpper = new Date().getFullYear();
+      dobYear = minimumDobYear;
+      isDobYearConfirmed = false;
+      updateDob();
     }
 
     function resetDob() {
       dobDay = 1;
       dobMonth = 1;
-      dobYear = 1900;
-      updateDob();
+      resetDobYearGuess();
     }
 
     function dobIsInFuture() {
@@ -1313,20 +1391,46 @@
       updateDob();
     });
 
-    function increaseDobYear(amount) {
-      const currentYear = new Date().getFullYear();
-      dobYear = dobYear + amount > currentYear
-        ? 1900
-        : dobYear + amount;
+    function guessDobYear(direction) {
+      if (isDobYearConfirmed) {
+        return;
+      }
+
+      if (direction === "earlier") {
+        dobYearUpper = dobYear - 1;
+      } else {
+        dobYearLower = dobYear + 1;
+      }
+
+      if (dobYearLower > dobYearUpper) {
+        dobError.textContent =
+          "The year escaped. Start the guessing game again.";
+        dobPicker.setAttribute("aria-invalid", "true");
+        return;
+      }
+
+      dobYear = Math.floor((dobYearLower + dobYearUpper) / 2);
       updateDob();
     }
 
-    addDobYearTen.addEventListener("click", () => {
-      increaseDobYear(10);
+    dobYearEarlier.addEventListener("click", () => {
+      guessDobYear("earlier");
     });
 
-    addDobYearOne.addEventListener("click", () => {
-      increaseDobYear(1);
+    dobYearLater.addEventListener("click", () => {
+      guessDobYear("later");
+    });
+
+    confirmDobYear.addEventListener("click", () => {
+      if (isDobYearConfirmed) {
+        resetDobYearGuess();
+        return;
+      }
+
+      isDobYearConfirmed = true;
+      dobPicker.setAttribute("aria-invalid", "false");
+      dobError.textContent = "";
+      updateDobYearGuessControls();
     });
 
     function startPhoneCounter() {
@@ -2045,7 +2149,12 @@
         isValid = false;
       }
 
-      if (!dateOfBirth.value || dobIsInFuture()) {
+      if (!isDobYearConfirmed) {
+        dobPicker.setAttribute("aria-invalid", "true");
+        dobError.textContent =
+          "Please finish guessing and confirm your birth year.";
+        isValid = false;
+      } else if (!dateOfBirth.value || dobIsInFuture()) {
         dobPicker.setAttribute("aria-invalid", "true");
         dobError.textContent = "Please select a valid date of birth.";
         isValid = false;
