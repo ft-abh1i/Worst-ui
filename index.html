@@ -131,6 +131,36 @@
       }
     }
 
+    .email-confirm {
+      min-height: 42px;
+      padding: 9px 14px;
+      color: white;
+      background: #4f46e5;
+      border: 1px solid #4f46e5;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      transition: 0.15s;
+    }
+
+    .email-confirm:hover:not(:disabled) {
+      background: #4338ca;
+      transform: translateY(-1px);
+    }
+
+    .email-confirm:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .email-confirm.confirmed {
+      color: #087f5b;
+      background: #eafaf4;
+      border-color: #b7ead8;
+      opacity: 1;
+    }
+
     .phone-picker {
       display: grid;
       gap: 10px;
@@ -450,6 +480,9 @@
           </small>
           <small class="error" id="emailError"></small>
         </div>
+        <button type="button" class="email-confirm" id="confirmEmail" disabled>
+          Confirm email
+        </button>
       </div>
 
       <div class="field">
@@ -503,6 +536,7 @@
     const form = document.getElementById("signupForm");
     const fullName = document.getElementById("fullName");
     const email = document.getElementById("email");
+    const confirmEmail = document.getElementById("confirmEmail");
     const password = document.getElementById("password");
     const confirmPassword = document.getElementById("confirmPassword");
     const terms = document.getElementById("terms");
@@ -520,6 +554,7 @@
     let nameProcessingTimer;
     let isEmailProcessing = false;
     let emailProcessingTimer;
+    let isEmailConfirmed = false;
     let acceptedFullName = "";
     let acceptedEmail = "";
     let selectedPhoneDigits = Array(10).fill(null);
@@ -716,7 +751,7 @@
     });
 
     function unlockEmail() {
-      if (!isEmailProcessing) {
+      if (!isEmailProcessing && !isEmailConfirmed) {
         email.readOnly = false;
       }
     }
@@ -738,6 +773,10 @@
       }
 
       acceptedEmail = enteredValue;
+      isEmailConfirmed = false;
+      confirmEmail.disabled = true;
+      confirmEmail.textContent = "Confirm email";
+      confirmEmail.classList.remove("confirmed");
 
       if (isEmailProcessing) return;
 
@@ -753,6 +792,7 @@
         email.readOnly = false;
         email.setAttribute("aria-busy", "false");
         emailProcessing.classList.remove("show");
+        confirmEmail.disabled = !validEmail(email.value.trim());
         email.focus();
       }, 1000);
     });
@@ -767,8 +807,12 @@
       clearTimeout(emailProcessingTimer);
       isEmailProcessing = false;
       acceptedEmail = "";
+      isEmailConfirmed = false;
       email.value = "";
       email.readOnly = false;
+      confirmEmail.disabled = true;
+      confirmEmail.textContent = "Confirm email";
+      confirmEmail.classList.remove("confirmed");
       email.setAttribute("aria-busy", "false");
       email.setAttribute("aria-invalid", "false");
       document.getElementById("emailError").textContent = "";
@@ -799,6 +843,26 @@
         event.preventDefault();
         clearEmail();
       }
+    });
+
+    confirmEmail.addEventListener("click", () => {
+      if (!validEmail(email.value.trim())) {
+        showError(email, "emailError", "Please enter a valid email address.");
+        return;
+      }
+
+      clearTimeout(emailProcessingTimer);
+      isEmailProcessing = false;
+      isEmailConfirmed = true;
+      email.readOnly = true;
+      email.setAttribute("aria-busy", "false");
+      email.setAttribute("aria-invalid", "false");
+      document.getElementById("emailError").textContent = "";
+      emailProcessing.classList.remove("show");
+      confirmEmail.disabled = true;
+      confirmEmail.textContent = "Email confirmed";
+      confirmEmail.classList.add("confirmed");
+      password.focus();
     });
 
     document.querySelectorAll(".show-password").forEach((button) => {
@@ -837,6 +901,9 @@
 
       if (!validEmail(email.value.trim())) {
         showError(email, "emailError", "Please enter a valid email address.");
+        isValid = false;
+      } else if (!isEmailConfirmed) {
+        showError(email, "emailError", "Please confirm your email address.");
         isValid = false;
       }
 
