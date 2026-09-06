@@ -241,7 +241,7 @@
       color: #172033;
       background: #ffffff;
       border: 2px solid #a5b4fc;
-      border-radius: 50%;
+      border-radius: 7px;
       cursor: pointer;
       font-size: 15px;
       font-weight: bold;
@@ -249,8 +249,8 @@
       touch-action: manipulation;
       box-shadow: 0 5px 12px rgba(0, 0, 0, 0.25);
       transition:
-        left 0.26s linear,
-        top 0.26s linear,
+        left 1.8s linear,
+        top 1.8s linear,
         transform 0.12s,
         background 0.12s;
     }
@@ -1169,7 +1169,7 @@
     function startFloatingKeyboard() {
       clearInterval(floatingKeyboardTimer);
       moveFloatingLetters();
-      floatingKeyboardTimer = setInterval(moveFloatingLetters, 360);
+      floatingKeyboardTimer = setInterval(moveFloatingLetters, 1900);
     }
 
     function closeFloatingKeyboard() {
